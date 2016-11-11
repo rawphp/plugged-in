@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "author": "Tom Kaczocha <tom.kaczocha@temando.com>",
   "license": "MIT",
+  "repository": "https://github.com/rawphp/plugged-in",
   "dependencies": {
     "babel-polyfill": "^6.9.1",
     "bluebird": "^3.4.1",
