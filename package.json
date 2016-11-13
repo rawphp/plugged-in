@@ -16,7 +16,6 @@
     }
   },
   "dependencies": {
-    "@temando/swisspost-pipeline-plugin": "0.0.1",
     "ajv": "^4.8.2",
     "babel-polyfill": "^6.9.1",
     "bluebird": "^3.4.1",
