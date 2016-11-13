@@ -2,4 +2,10 @@
 
 Plugin system for Node Js.
 
-## Coming Soon
+## NOTE: This module is under heavy development.
+
+## Installation
+
+      npm install plugged-in
+
+## Usage

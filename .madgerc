@@ -1,0 +1,10 @@
+{
+    "showFileExtension": false,
+    "fontSize": "12px",
+    "layout": "dot",
+    "graphVizOptions": {
+        "G": {
+            "rankdir": "LR"
+        }
+    }
+}

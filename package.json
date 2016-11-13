@@ -6,12 +6,28 @@
   "author": "Tom Kaczocha <tom.kaczocha@temando.com>",
   "license": "MIT",
   "repository": "https://github.com/rawphp/plugged-in",
+  "plugged-in": {
+    "context": "plugged-in",
+    "provides": {
+      "onGenerateConfig": {
+        "function": "addCreatedAt",
+        "order": 100
+      }
+    }
+  },
   "dependencies": {
+    "@temando/swisspost-pipeline-plugin": "0.0.1",
+    "ajv": "^4.8.2",
     "babel-polyfill": "^6.9.1",
     "bluebird": "^3.4.1",
     "color-logger": "0.0.6",
+    "fs-extra": "^1.0.0",
+    "minimist": "^1.2.0",
+    "moment": "^2.16.0",
     "source-map-support": "^0.4.5",
-    "webpack": "^1.13.3"
+    "underscore": "^1.8.3",
+    "webpack": "^1.13.3",
+    "write-json-file": "^2.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.9.0",
