@@ -10,16 +10,6 @@
           "order": 100
         }
       }
-    },
-    {
-      "name": "@temando/swisspost-pipeline-plugin",
-      "context": "plugged-in",
-      "provides": {
-        "onMapEvents": {
-          "function": "onMapEvents",
-          "order": 1
-        }
-      }
     }
   ],
   "createdAt": "2016-11-13T11:04:27.302Z"
