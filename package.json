@@ -64,6 +64,9 @@
     "README.md",
     "CHANGELONG.md"
   ],
+  "bin": {
+    "pluggedin": "build/PluggedInCli.js"
+  },
   "watch": {
     "build": {
       "patterns": [
