@@ -68,9 +68,6 @@
     "README.md",
     "CHANGELONG.md"
   ],
-  "bin": {
-    "pluggedin": "build/CliApplication.js"
-  },
   "watch": {
     "build": {
       "patterns": [
