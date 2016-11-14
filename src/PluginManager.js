@@ -1,7 +1,6 @@
 import Promise from 'bluebird';
 import copy from './util/copy';
 import fs from 'fs';
-import assert from 'assert';
 import { EventEmitter } from 'events';
 import log from 'color-logger';
 import Npm from './Npm';
