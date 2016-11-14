@@ -1,12 +1,7 @@
-import Plugin from './Plugin';
+import PluginManager from './PluginManager';
+import Event from './Event';
 
-// const plugin = new Plugin({
-//   debug: true,
-//   pluginContext: 'pipeline-plugin',
-// });
-
-// plugin.init();
-
-// export {
-//   plugin,
-// };
+export {
+  PluginManager,
+  Event,
+};

@@ -1,44 +1,75 @@
 import Promise from 'bluebird';
 import copy from './util/copy';
 import fs from 'fs';
+import assert from 'assert';
 import { EventEmitter } from 'events';
 import log from 'color-logger';
-import Npm from './util/Npm';
+import Npm from './Npm';
 import Event from './Event';
 
 const fileSystem = Promise.promisifyAll(fs);
 
-export default class Plugin extends EventEmitter {
+export default class PluginManager extends EventEmitter {
   /**
    * Create instance.
    *
-   * @param {Object} options options object
+   * @param {Object} options       options object
+   * @param {Object} loadedModules loaded local modules
    */
   constructor(options = {}, loadedModules = {}) {
-    super();
+    super(options);
+
+    this._debug = options.debug;
 
     log.debug = options.debug || false;
 
-    log.d('new Plugin()', options);
+    log.d('new PluginManager()', options);
 
     this._plugins = options.plugins || [];
-    this._context = options.context || '';
+    this._context = options.context || 'default';
     this._loadedModules = loadedModules;
   }
 
+  /**
+   * Get plugin context.
+   *
+   * @returns {String} the context
+   */
+  get context() {
+    return this._context;
+  }
+
+  /**
+   * Get plugins.
+   *
+   * @returns {Object[]} list of plugins
+   */
+  get plugins() {
+    return this._plugins;
+  }
+
+  /**
+   * Setter for plugins.
+   *
+   * @param {PluginManager[]} plugins plugins array
+   *
+   * @returns {undefined}
+   */
   set plugins(plugins) {
     this._plugins = this._plugins.concat(plugins);
+
+    this.emit('setPlugins', this.plugins);
   }
 
   /**
    * Initialize with plugin property.
    *
-   * @param {Object[]} plugins expect config.plugins property.
+   * @param {Object[]} plugins expect plugins property.
    *
-   * @returns {Plugin} this plugin
+   * @returns {PluginManager} this plugin
    */
   async init(plugins = []) {
-    log.i('Plugin.init()');
+    log.i('PluginManager.init()');
     log.d('plugins', plugins);
 
     this._plugins = copy(plugins);
@@ -46,21 +77,29 @@ export default class Plugin extends EventEmitter {
     try {
       const exists = fileSystem.existsSync('.plugged-in.json');
 
+      log.d('exists', exists);
+
       if (exists === true) {
         let data = await fileSystem.readFileAsync('.plugged-in.json');
 
+        log.d('data', data.toString());
+
         data = JSON.parse(data);
+
+        log.d('.plugged-in.json', data);
 
         this._context = data.context;
         this._plugins = this._plugins.concat(data.plugins);
       } else {
+        log.d('.plugged-in.json does not exists');
+
         // find plugins
-        const util = new Npm({ debug: this.debug });
+        const util = new Npm({ debug: this._debug });
 
         await util.generateConfig();
       }
     } catch (error) {
-      log.e(error);
+      log.e('PluginManager.init()', error.message);
     }
 
     this.emit('init');
@@ -73,12 +112,12 @@ export default class Plugin extends EventEmitter {
   /**
    * Exec an event.
    *
-   * @param {ActionEvent|FilterEvent|String} event the event to execute
+   * @param {Event} event the event to execute
    *
-   * @returns {Plugin} this plugin
+   * @returns {PluginManager} this plugin
    */
   async exec(event) {
-    log.i('filter()');
+    log.i('PluginManager.exec()');
 
     const providers = (await this.getProviders(event.name))
       .filter((provider) => provider !== null)

@@ -4,13 +4,10 @@ import fs from 'fs-extra';
 import writeJsonFile from 'write-json-file';
 import childProcess from 'child_process';
 import log from 'color-logger';
-import Plugin from './../Plugin';
-import Event from './../Event';
+import readPackage from 'read-pkg-up';
 
-export default class Npm extends Plugin {
-  constructor(config, loadedModules = {}) {
-    super(config, loadedModules);
-
+export default class Npm {
+  constructor(config) {
     log.debug = config.debug || false;
   }
 
@@ -22,20 +19,19 @@ export default class Npm extends Plugin {
    * @returns {Object} package
    */
   static findPackage(dir) {
+    const directory = dir || __dirname;
     let packageObj = null;
 
-    const directory = dir || `${__dirname}/../../`;
-
     try {
-      const packageFilePath = path.resolve(directory, 'package.json');
+      const packageFilePath = path.join(directory, 'package.json');
+
+      log.i(`Find package in ${packageFilePath}`);
+
       const json = fs.readFileSync(packageFilePath, { encode: 'utf8' });
 
       packageObj = JSON.parse(json);
     } catch (error) {
-      const packageFilePath = path.resolve(directory, '../package.json');
-      const json = fs.readFileSync(packageFilePath, { encode: 'utf8' });
-
-      packageObj = JSON.parse(json);
+      log.e('findPackage()', error.message);
     }
 
     return packageObj;
@@ -44,54 +40,61 @@ export default class Npm extends Plugin {
   /**
    * Generates a plugin list.
    *
-   * @returns {undefined}
+   * @returns {Object} generated config
    */
   async generateConfig() {
     log.i('generateConfig()');
 
-    const sysPkg = Npm.findPackage();
-    const sysConfig = sysPkg['plugged-in'];
-
-    const configObj = {
-      context: sysConfig.context,
-      plugins: [],
-    };
-
-    const modules = await Npm.getModules();
-
-    await Promise.mapSeries(modules, async (dir) => {
-      const plugPkg = Npm.findPackage(dir);
-
-      const config = plugPkg['plugged-in'];
-
-      if (typeof config !== 'undefined') {
-        log.i(`Plugin: ${dir}`);
-
-        if (config.context === sysConfig.context) {
-          const name = plugPkg.name;
-
-          let plugin = { name };
-
-          plugin = Object.assign(plugin, config);
-
-          configObj.plugins.push(plugin);
-        }
-      }
-    });
-
-    this.plugins = configObj.plugins;
-
-    const event = new Event({ name: 'onGenerateConfig', data: configObj });
-
-    await this.exec(event);
-
-    log.d(event);
-
     try {
-      writeJsonFile('.plugged-in.json', event.data, { indent: 2 });
+      const obj = await readPackage();
+
+      if (typeof obj.pkg['plugged-in'] === 'undefined') {
+        throw new Error('package.json must have a `plugged-in` section definining the context');
+      }
+
+      const sysConfig = obj.pkg['plugged-in'];
+
+      const configObj = {
+        context: sysConfig.context,
+        plugins: [],
+      };
+
+      const modules = await Npm.getModules();
+
+      log.d(modules);
+
+      await Promise.mapSeries(modules, async (dir) => {
+        try {
+          const plugPkg = Npm.findPackage(dir);
+
+          const config = plugPkg['plugged-in'];
+
+          if (typeof config !== 'undefined') {
+            log.i(`Plugin: ${dir}`);
+
+            if (config.context === sysConfig.context) {
+              const name = plugPkg.name;
+
+              let plugin = { name };
+
+              plugin = Object.assign(plugin, config);
+
+              configObj.plugins.push(plugin);
+            }
+          }
+        } catch (error) {
+          log.e('process modules', error.message);
+        }
+      });
+
+      await writeJsonFile('.plugged-in.json', configObj, { indent: 2 });
+
+      return configObj;
     } catch (error) {
-      log.e('Writer Error', error);
+      log.e('generateConfig()', error.message);
     }
+
+    return null;
   }
 
   /**
@@ -103,6 +106,7 @@ export default class Npm extends Plugin {
    */
   static async getModules() {
     const modules = [];
+    const bufferSize = 1024 * 500;
 
     const execAsync = Promise.promisify(childProcess.exec);
 
@@ -110,7 +114,7 @@ export default class Npm extends Plugin {
       let result;
 
       try {
-        result = await execAsync('npm ls --parseable', {});
+        result = await execAsync('npm ls --parseable', { maxBuffer: bufferSize });
       } catch (error) {
         log.e(
           error.message
@@ -128,7 +132,7 @@ export default class Npm extends Plugin {
         });
 
       try {
-        result = await execAsync('npm ls -g --parseable');
+        result = await execAsync('npm ls -g --parseable', { maxBuffer: bufferSize });
       } catch (error) {
         log.e(
           error.message
@@ -136,8 +140,6 @@ export default class Npm extends Plugin {
             .replace('npm ERR! ', '')
         );
       }
-
-      result = await execAsync('npm ls -g --parseable');
 
       result
         .split('\n')
