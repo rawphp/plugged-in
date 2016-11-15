@@ -74,4 +74,31 @@ describe.only('PluginManager', () => {
       console.log('error', error);
     }
   });
+
+  it('local event handler overrides external', async () => {
+    try {
+      const setDefaultMaxHandlers = (event) => {
+        const mgr = event.data;
+
+        if (mgr) {
+          mgr.setMaxListeners(10);
+        }
+      };
+
+      const plugin = {
+        provides: {
+          postInit: setDefaultMaxHandlers,
+        },
+      };
+
+      const result = await manager.init(plugin);
+
+      console.log('manager', manager);
+
+      expect(result).to.deep.equal(manager);
+      expect(manager._maxListeners).to.equal(10);
+    } catch (error) {
+      console.log('error', error);
+    }
+  });
 });

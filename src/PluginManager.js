@@ -41,8 +41,6 @@ export default class PluginManager extends EventEmitter {
     let data;
 
     try {
-      await this.addPlugins([plugin]);
-
       const exists = fileSystem.existsSync(this._configFile);
 
       if (exists === true) {
@@ -66,6 +64,9 @@ export default class PluginManager extends EventEmitter {
     } catch (error) {
       log.e('PluginManager.init()', error.message);
     }
+
+    // Add local plugin last so that it can override externals if necessary
+    await this.addPlugins([plugin]);
 
     this.emit('postInit', new Event({ name: 'postInit', data: this }));
 
