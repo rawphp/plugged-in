@@ -1,18 +1,17 @@
 /**
- * Plugin object.
- * @typedef {Object} Plugin
- */
-
-/**
- * PluggedIn uses argv
- * @typedef {Object}   PluggedInArgv
- * @property {Boolean} [h] - for help
- * @property {Boolean} [help] - for help
- * @property {Boolean} [v] - for version
- * @property {Boolean} [version] - for version
- * @property {String}  [c] - for config file path
+ * PluginManager object.
+ *
+ * @typedef {Object} PluginManager
  */
 
 /**
  * @typedef {Object} DocTypedef
+ */
+
+/**
+ * Event config object.
+ *
+ * @typedef {Object} EventConfig
+ * @property {String} name event name
+ * @property {*}      data event data
  */

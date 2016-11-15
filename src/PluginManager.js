@@ -1,8 +1,8 @@
 import Promise from 'bluebird';
-import copy from './util/copy';
 import fs from 'fs';
 import { EventEmitter } from 'events';
 import log from 'color-logger';
+import copy from './util/copy';
 import Npm from './Npm';
 import Event from './Event';
 
@@ -15,201 +15,145 @@ export default class PluginManager extends EventEmitter {
    * @param {Object} options       options object
    * @param {Object} loadedModules loaded local modules
    */
-  constructor(options = {}, loadedModules = {}) {
+  constructor(options = {}) {
+    log.i('new PluginManager()', options);
+
     super(options);
 
     this._debug = options.debug;
+    this._configFile = options.configFile || '.plugged-in.json';
 
     log.debug = options.debug || false;
 
-    log.d('new PluginManager()', options);
-
-    this._plugins = options.plugins || [];
-    this._context = options.context || 'default';
-    this._loadedModules = loadedModules;
-  }
-
-  /**
-   * Get plugin context.
-   *
-   * @returns {String} the context
-   */
-  get context() {
-    return this._context;
-  }
-
-  /**
-   * Get plugins.
-   *
-   * @returns {Object[]} list of plugins
-   */
-  get plugins() {
-    return this._plugins;
-  }
-
-  /**
-   * Setter for plugins.
-   *
-   * @param {PluginManager[]} plugins plugins array
-   *
-   * @returns {undefined}
-   */
-  set plugins(plugins) {
-    this._plugins = this._plugins.concat(plugins);
-
-    this.emit('setPlugins', this.plugins);
+    this.context = options.context;
   }
 
   /**
    * Initialize with plugin property.
    *
-   * @param {Object[]} plugins expect plugins property.
+   * @param {Object} plugin local event handlers
    *
    * @returns {PluginManager} this plugin
    */
-  async init(plugins = []) {
+  async init(plugin = {}) {
     log.i('PluginManager.init()');
-    log.d('plugins', plugins);
 
-    this._plugins = copy(plugins);
+    let data;
 
     try {
-      const exists = fileSystem.existsSync('.plugged-in.json');
+      this.addPlugins([plugin]);
 
-      log.d('exists', exists);
+      const exists = fileSystem.existsSync(this._configFile);
 
       if (exists === true) {
-        let data = await fileSystem.readFileAsync('.plugged-in.json');
-
-        log.d('data', data.toString());
+        data = await fileSystem.readFileAsync(this._configFile);
 
         data = JSON.parse(data);
 
-        log.d('.plugged-in.json', data);
-
-        this._context = data.context;
-        this._plugins = this._plugins.concat(data.plugins);
+        this.addPlugins(data.plugins);
       } else {
         log.d('.plugged-in.json does not exists');
 
         // find plugins
-        const util = new Npm({ debug: this._debug });
+        const npm = new Npm({ debug: this._debug });
 
-        await util.generateConfig();
+        data = await npm.generateConfig(this);
+      }
+
+      if (typeof this.context === 'undefined') {
+        this.context = data.context;
       }
     } catch (error) {
       log.e('PluginManager.init()', error.message);
     }
 
-    this.emit('init');
-
-    log.d(this);
+    this.emit('postInit', new Event({ name: 'postInit', data: this }));
 
     return this;
   }
 
   /**
-   * Exec an event.
+   * Add local plugins.
    *
-   * @param {Event} event the event to execute
+   * @param {Object[]} plugins list of plugins
    *
-   * @returns {PluginManager} this plugin
+   * @returns {undefined}
    */
-  async exec(event) {
-    log.i('PluginManager.exec()');
-
-    const providers = (await this.getProviders(event.name))
-      .filter((provider) => provider !== null)
-      .sort((providerA, providerB) => {
-        if (providerA.order > providerB.order) {
-          return 1;
-        }
-
-        if (providerA.order < providerB.order) {
-          return -1;
-        }
-
-        // providerA must be equal to providerA
-        return 0;
-      });
-
-    log.i('exec count:', providers.length);
-
-    if (event instanceof Event) {
-      await Promise.mapSeries(providers, async (handler) => {
-        const func = handler.handler;
-
-        await func(event);
-      });
+  addPlugins(plugins) {
+    if (Array.isArray(plugins) === false) {
+      throw new Error('Plugins must be an array');
     }
 
-    this.emit('exec');
+    plugins.forEach((plugin) => {
+      if (typeof plugin.provides === 'undefined') {
+        return;
+      }
 
-    return this;
+      const pluginEvents = Object.keys(plugin.provides);
+
+      pluginEvents.forEach(async (key) => {
+        let handlers = [];
+
+        let handler = plugin.provides[key];
+
+        if (typeof handler === 'string') {
+          handler = await this._getCallback(plugin, key);
+        }
+
+        if (Array.isArray(handler)) {
+          handlers = handler;
+        } else {
+          handlers.push(handler);
+        }
+
+        handlers.forEach((func) => {
+          this.on(key, func);
+        });
+      });
+    });
   }
 
   /**
-   * Get list of providers.
+   * Get callback for plugin service.
    *
-   * @param {String} service service name
+   * @param {Object} plugin the plugin
+   * @param {String} eventName the name of the event
    *
-   * @returns {Object[]} list of providers
+   * @returns {Function} the handler
    */
-  async getProviders(service) {
-    log.i('Plugins:', this._plugins.length);
+  async _getCallback(plugin, eventName) {
+    try {
+      log.d(`Checking plugin: ${plugin.name}`);
 
-    return await Promise.all(this._plugins.map(async (plugin) => {
-      log.d(plugin);
+      let funcName = plugin.provides[eventName];
 
-      const provider = {
-        handler: null,
-        order: 1,
-      };
-
-      try {
-        log.d(`Checking plugin: ${plugin.name}`);
-
-        let funcName = plugin.provides[service];
-
-        if (typeof funcName === 'object') {
-          provider.order = funcName.order;
-          funcName = funcName.function;
-        }
-
-        log.d(`Function Name: ${funcName}`);
-
-        if (funcName === 'undefined') {
-          return null;
-        }
-
-        if (typeof this._loadedModules[funcName] === 'function') {
-          log.d('Local plugin');
-
-          provider.handler = this._loadedModules[funcName];
-        } else {
-          log.d('External plugin');
-
-          const pg = require(`${plugin.name}`); // eslint-disable-line global-require
-
-          log.d('Package', pg);
-
-          provider.handler = pg[funcName];
-        }
-
-        if (typeof provider.handler !== 'function') {
-          return null;
-        }
-
-        return provider;
-      } catch (error) {
-        if (plugin.provides[service].match(/^[.\/]/)) {
-          log.e(`Unsupported action '${service}'`, error);
-        } else {
-          log.d(`Unsupported action '${service}'`, error);
-        }
+      if (typeof funcName === 'object') {
+        funcName = funcName.function;
       }
 
-      return null;
-    }));
+      log.d(`Function Name: ${funcName}`);
+
+      if (funcName === 'undefined') {
+        return null;
+      }
+
+      const pg = require(`${plugin.name}`); // eslint-disable-line global-require
+
+      const handler = pg[funcName];
+
+      if (typeof handler !== 'function') {
+        return null;
+      }
+
+      return handler;
+    } catch (error) {
+      if (plugin.provides[eventName].match(/^[.\/]/)) {
+        log.e(`Unsupported action '${eventName}'`, error);
+      } else {
+        log.d(`Unsupported action '${eventName}'`, error);
+      }
+    }
+
+    return null;
   }
 }

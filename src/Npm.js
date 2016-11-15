@@ -5,45 +5,34 @@ import writeJsonFile from 'write-json-file';
 import childProcess from 'child_process';
 import log from 'color-logger';
 import readPackage from 'read-pkg-up';
+import Event from './Event';
+
+const readFileAsync = Promise.promisify(fs.readFile);
 
 export default class Npm {
-  constructor(config) {
-    log.debug = config.debug || false;
-  }
-
   /**
-   * Find package.json file.
+   * Create a new instance.
    *
-   * @param {String} [dir] optional directory to search
-   *
-   * @returns {Object} package
+   * @param {Object} config config object
    */
-  static findPackage(dir) {
-    const directory = dir || __dirname;
-    let packageObj = null;
+  constructor(config) {
+    this._debug = config.debug || false;
 
-    try {
-      const packageFilePath = path.join(directory, 'package.json');
-
-      log.i(`Find package in ${packageFilePath}`);
-
-      const json = fs.readFileSync(packageFilePath, { encode: 'utf8' });
-
-      packageObj = JSON.parse(json);
-    } catch (error) {
-      log.e('findPackage()', error.message);
-    }
-
-    return packageObj;
+    log.debug = this._debug;
   }
 
   /**
    * Generates a plugin list.
    *
+   * @param {String} manager  event context
+   * @param {String} filePath path to new file
+   *
    * @returns {Object} generated config
    */
-  async generateConfig() {
+  async generateConfig(manager, filePath) {
     log.i('generateConfig()');
+
+    const configPath = filePath || '.plugged-in.json';
 
     try {
       const obj = await readPackage();
@@ -59,23 +48,29 @@ export default class Npm {
         plugins: [],
       };
 
-      const modules = await Npm.getModules();
-
-      log.d(modules);
+      const modules = await this.getModules();
 
       await Promise.mapSeries(modules, async (dir) => {
         try {
-          const plugPkg = Npm.findPackage(dir);
+          const plugPkg = await Npm.findPackage(dir);
+
+          if (plugPkg === null) {
+            return;
+          }
 
           const config = plugPkg['plugged-in'];
 
           if (typeof config !== 'undefined') {
-            log.i(`Plugin: ${dir}`);
-
             if (config.context === sysConfig.context) {
               const name = plugPkg.name;
 
+              if (name === 'plugged-in') {
+                return;
+              }
+
               let plugin = { name };
+
+              delete config.context;
 
               plugin = Object.assign(plugin, config);
 
@@ -83,11 +78,17 @@ export default class Npm {
             }
           }
         } catch (error) {
-          log.e('process modules', error.message);
+          log.e('process modules', error.message, dir);
         }
       });
 
-      await writeJsonFile('.plugged-in.json', configObj, { indent: 2 });
+      manager.addPlugins(configObj.plugins);
+
+      const event = new Event({ name: 'generateConfig', data: configObj });
+
+      manager.emit(event.name, event);
+
+      await writeJsonFile(configPath, event.data, { indent: 2 });
 
       return configObj;
     } catch (error) {
@@ -98,30 +99,72 @@ export default class Npm {
   }
 
   /**
+   * Find package.json file.
+   *
+   * @param {String} [dir] optional directory to search
+   *
+   * @returns {Object} package
+   */
+  static async findPackage(dir) {
+    const directory = dir || __dirname;
+    let packageObj = null;
+
+    try {
+      const packageFilePath = path.join(directory, 'package.json');
+
+      const exists = fs.existsSync(packageFilePath);
+
+      if (exists === false) {
+        return packageObj;
+      }
+
+      const json = await readFileAsync(packageFilePath, { encode: 'utf8' });
+
+      packageObj = JSON.parse(json);
+    } catch (error) {
+      log.w('findPackage()', error.message);
+    }
+
+    return packageObj;
+  }
+
+  /**
+   * Execute shell command.
+   *
+   * @param {String} command command line command
+   *
+   * @returns {String} output
+   */
+  async executeShell(command) {
+    const bufferSize = 1024 * 500;
+
+    const execAsync = Promise.promisify(childProcess.exec);
+
+    try {
+      return await execAsync(command, { maxBuffer: bufferSize });
+    } catch (error) {
+      log.e(
+        error.message
+          .replace('Command failed: npm ls --parseable', '')
+          .replace('npm ERR! ', '')
+      );
+
+      return null;
+    }
+  }
+
+  /**
    * Get installed modules.
    *
    * @returns {String[]} list of all module directories
    *
    * @private
    */
-  static async getModules() {
+  async getModules() {
     const modules = [];
-    const bufferSize = 1024 * 500;
-
-    const execAsync = Promise.promisify(childProcess.exec);
 
     try {
-      let result;
-
-      try {
-        result = await execAsync('npm ls --parseable', { maxBuffer: bufferSize });
-      } catch (error) {
-        log.e(
-          error.message
-            .replace('Command failed: npm ls --parseable', '')
-            .replace('npm ERR! ', '')
-        );
-      }
+      let result = await this.executeShell('npm ls --parseable');
 
       result
         .split('\n')
@@ -131,15 +174,7 @@ export default class Npm {
           }
         });
 
-      try {
-        result = await execAsync('npm ls -g --parseable', { maxBuffer: bufferSize });
-      } catch (error) {
-        log.e(
-          error.message
-            .replace('Command failed: npm ls --parseable', '')
-            .replace('npm ERR! ', '')
-        );
-      }
+      result = await this.executeShell('npm ls -g --parseable');
 
       result
         .split('\n')

@@ -3,10 +3,7 @@ import ValidationError from './../errors/ValidationError';
 
 const ajv = new Ajv({ allErrors: true });
 
-/* eslint-disable max-len  */
-const pluggedInSchema = require('../../resources/schema/schema+v1.json');
-
-ajv.addSchema(pluggedInSchema);
+ajv.addSchema(require('../../resources/schema/schema+v1.json'));
 
 export default {
   ajv,

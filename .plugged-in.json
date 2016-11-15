@@ -2,15 +2,11 @@
   "context": "plugged-in",
   "plugins": [
     {
-      "name": "plugged-in",
-      "context": "plugged-in",
+      "name": "plugged-in-extras-plugin",
       "provides": {
-        "onGenerateConfig": {
-          "function": "addCreatedAt",
-          "order": 100
-        }
+        "error": "handleError"
       }
     }
   ],
-  "createdAt": "2016-11-13T11:04:27.302Z"
+  "createdAt": "2016-11-15T05:20:42.481Z"
 }
