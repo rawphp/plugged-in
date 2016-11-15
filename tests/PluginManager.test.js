@@ -1,10 +1,11 @@
 import Moment from 'moment';
 import chai, { expect } from 'chai';
 import PluginManager from './../src/PluginManager';
+import Event from './../src/Event';
 
 chai.use(require('dirty-chai'));
 
-describe('PluginManager', () => {
+describe.only('PluginManager', () => {
   let manager;
 
   const options = {
@@ -27,6 +28,8 @@ describe('PluginManager', () => {
 
       expect(result).to.deep.equal(manager);
       expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.postInit[0]).to.equal('function');
+      expect(typeof result._events.postInit[1]).to.equal('function');
     } catch (error) {
       console.log('error', error);
     }
@@ -38,23 +41,35 @@ describe('PluginManager', () => {
         event.data.createdAt = new Moment();
       };
 
-      const onAddInitialisedAt = (event) => {
-        event.data.initialisedAt = new Moment();
-      };
-
       const plugin = {
         provides: {
           generateConfig: onGenerateConfig,
-          postInit: onAddInitialisedAt,
         },
       };
 
       const result = await manager.init(plugin);
 
       expect(result).to.deep.equal(manager);
-      expect(typeof result._events.error).to.equal('function');
       expect(typeof result._events.generateConfig).to.equal('function');
-      expect(typeof result._events.postInit).to.equal('function');
+      expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.postInit[0]).to.equal('function');
+      expect(typeof result._events.postInit[1]).to.equal('function');
+      expect(typeof result._events.exit).to.equal('function');
+    } catch (error) {
+      console.log('error', error);
+    }
+  });
+
+  it('removes listeners on exit', async () => {
+    try {
+      const result = await manager.init();
+
+      const event = new Event({ name: 'exit', data: manager });
+
+      manager.emit('exit', event);
+
+      expect(result).to.deep.equal(manager);
+      expect(Object.keys(result._events).length).to.equal(0);
     } catch (error) {
       console.log('error', error);
     }

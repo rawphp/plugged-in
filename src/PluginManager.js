@@ -41,7 +41,7 @@ export default class PluginManager extends EventEmitter {
     let data;
 
     try {
-      this.addPlugins([plugin]);
+      await this.addPlugins([plugin]);
 
       const exists = fileSystem.existsSync(this._configFile);
 
@@ -50,7 +50,7 @@ export default class PluginManager extends EventEmitter {
 
         data = JSON.parse(data);
 
-        this.addPlugins(data.plugins);
+        await this.addPlugins(data.plugins);
       } else {
         log.d('.plugged-in.json does not exists');
 
@@ -79,38 +79,64 @@ export default class PluginManager extends EventEmitter {
    *
    * @returns {undefined}
    */
-  addPlugins(plugins) {
+  async addPlugins(plugins) {
     if (Array.isArray(plugins) === false) {
       throw new Error('Plugins must be an array');
     }
 
-    plugins.forEach((plugin) => {
+    await Promise.mapSeries(plugins, async (plugin) => {
       if (typeof plugin.provides === 'undefined') {
-        return;
+        return null;
       }
 
       const pluginEvents = Object.keys(plugin.provides);
 
-      pluginEvents.forEach(async (key) => {
-        let handlers = [];
+      await Promise.mapSeries(pluginEvents, async (key) => {
+        let funcs = plugin.provides[key];
 
-        let handler = plugin.provides[key];
-
-        if (typeof handler === 'string') {
-          handler = await this._getCallback(plugin, key);
+        if (Array.isArray(funcs) !== true) {
+          funcs = [funcs];
         }
 
-        if (Array.isArray(handler)) {
-          handlers = handler;
-        } else {
-          handlers.push(handler);
-        }
+        await Promise.mapSeries(funcs, async (func) => {
+          if (typeof func === 'function') {
+            if (this.hasHandler(key, func) === false) {
+              this.on(key, func);
+            }
+          } else if (typeof func === 'string') {
+            const handles = await this._getCallback(plugin, key); // TODO add support
 
-        handlers.forEach((func) => {
-          this.on(key, func);
+            handles.forEach((handle) => {
+              if (this.hasHandler(key, handle) === false) {
+                this.on(key, handle);
+              }
+            });
+          } else {
+            throw new Error('Unsupported event handler', func);
+          }
+
+          return null;
         });
+
+        return null;
       });
+
+      return null;
     });
+  }
+
+  /**
+   * Determines if a handler exists for an event.
+   *
+   * @param {String}   event   the event name
+   * @param {Function} handler the function
+   *
+   * @returns {Boolean} true if exists, otherwise false
+   */
+  hasHandler(event, handler) {
+    const listeners = this.listeners(event);
+
+    return listeners.indexOf(handler) !== -1;
   }
 
   /**
@@ -119,33 +145,37 @@ export default class PluginManager extends EventEmitter {
    * @param {Object} plugin the plugin
    * @param {String} eventName the name of the event
    *
-   * @returns {Function} the handler
+   * @returns {Function[]} the handler
    */
   async _getCallback(plugin, eventName) {
     try {
+      const funcs = [];
+
       log.d(`Checking plugin: ${plugin.name}`);
 
-      let funcName = plugin.provides[eventName];
+      let funcNames = plugin.provides[eventName];
 
-      if (typeof funcName === 'object') {
-        funcName = funcName.function;
+      if (Array.isArray(funcNames) !== true) {
+        funcNames = [funcNames];
       }
 
-      log.d(`Function Name: ${funcName}`);
+      funcNames.forEach((funcName) => {
+        log.d(`Function Name: ${funcName}`);
 
-      if (funcName === 'undefined') {
-        return null;
-      }
+        if (funcName === 'undefined') {
+          return null;
+        }
 
-      const pg = require(`${plugin.name}`); // eslint-disable-line global-require
+        const pg = require(`${plugin.name}`); // eslint-disable-line global-require
 
-      const handler = pg[funcName];
+        const handler = pg[funcName];
 
-      if (typeof handler !== 'function') {
-        return null;
-      }
+        if (typeof handler === 'function') {
+          funcs.push(handler);
+        }
+      });
 
-      return handler;
+      return funcs;
     } catch (error) {
       if (plugin.provides[eventName].match(/^[.\/]/)) {
         log.e(`Unsupported action '${eventName}'`, error);

@@ -18,7 +18,7 @@
     "minimist": "^1.2.0",
     "moment": "^2.16.0",
     "optionator": "^0.8.2",
-    "plugged-in-extras-plugin": "0.0.2",
+    "plugged-in-extras-plugin": "0.0.4",
     "read-pkg-up": "^2.0.0",
     "source-map-support": "^0.4.5",
     "underscore": "^1.8.3",
