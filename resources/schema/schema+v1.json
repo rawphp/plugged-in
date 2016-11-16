@@ -14,33 +14,13 @@
       "type": "string"
     },
     "provides": {
-      "oneOf": [
-        {
-          "type": "string"
-        },
-        {
-          "$ref": "#/definitions/provides"
-        }
-      ]
+      "$ref": "#/definitions/provides"
     }
   },
   "definitions": {
     "provides": {
       "description": "Provides object",
-      "type": "object",
-      "required": [
-        "function"
-      ],
-      "properties": {
-        "function": {
-          "description": "The function to call",
-          "type": "string"
-        },
-        "order": {
-          "description": "The order of the functions",
-          "type": "integer"
-        }
-      }
+      "type": "object"
     }
   }
 }

@@ -1,5 +1,8 @@
 # Plugged In
 
+[![Build Status](https://travis-ci.org/rawphp/plugged-in.svg?branch=master)](https://travis-ci.org/rawphp/plugged-in)
+[![Code Climate](https://codeclimate.com/github/rawphp/plugged-in/badges/gpa.svg)](https://codeclimate.com/github/rawphp/plugged-in)
+
 Plugin system for Node Js.
 
 ## NOTE: This module is under heavy development.
@@ -9,6 +12,8 @@ Plugin system for Node Js.
       npm install plugged-in
 
 ## Usage
+
+See the examples directory for usage example. The examples show the manager project and one plugin project.
 
 If you have plugins installed globally, you need to run the link command to make them
 available to the plugin manager.

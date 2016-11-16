@@ -1,35 +1,17 @@
 {
   "source": "./src",
-  "destination": "./doc/out/esdoc",
-  "excludes": ["Publisher/Builder/template/", "BuiltinExternal/"],
+  "destination": "./resources/docs/plugged-in",
+  "excludes": [],
   "access": ["public", "protected", "private"],
   "debug": false,
   "index": "./README.md",
   "package": "./package.json",
-  "title": "ESDoc",
+  "title": "Plugged In",
   "test": {
     "type": "mocha",
-    "source": "./test/src"
+    "source": "./tests"
   },
-  "plugins": [
-    {
-      "name": "esdoc-importpath-plugin",
-      "option": {
-        "replaces": [
-          {"from": "^src/", "to": "out/src/"}
-        ]
-      }
-    }
-  ],
   "manual": {
-    "asset": "./resources/docs/asset",
-    "overview": ["./resources/docs/overview.md", "./resources/docs/feature.md"],
-    "installation": ["./resources/docs/installation.md"],
-    "usage": ["./resources/docs/usage.md", "./resources/docs/api.md"],
-    "tutorial": ["./resources/docs/tutorial.md"],
-    "configuration": ["./resources/docs/configuration.md"],
-    "example": ["./resources/docs/example.md"],
-    "faq": ["./resources/docs/faq.md"],
     "changelog": ["./CHANGELOG.md"]
   }
 }
