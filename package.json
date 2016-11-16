@@ -7,6 +7,9 @@
   "license": "MIT",
   "repository": "https://github.com/rawphp/plugged-in",
   "bugs": "https://github.com/rawphp/plugged-in/issues",
+  "engines": {
+    "node": ">=5"
+  },
   "plugged-in": {
     "context": "plugged-in"
   },
@@ -80,11 +83,11 @@
   "scripts": {
     "lint": "npm run clean && eslint .",
     "test": "env TZ='UTC' NODE_ENV=test mocha tests --compilers js:babel-core/register --require babel-polyfill --recursive",
-    "coverage": "env TZ='UTC' babel-node ./node_modules/.bin/isparta cover --report text _mocha -- --compilers js:babel-core/register --recursive --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "coverage": "istanbul cover --verbose --report text --report lcov _mocha -- --compilers js:babel-core/register --require babel-polyfill tests/**/*.test.js --recursive",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "watch": "npm-watch",
     "clean": "rm -rf build",
-    "build": "npm run clean && $(npm bin)/babel ./src/ --ignore node_modules --out-dir build && cd ../tracking/tracking-pipeline && npm i ../../plugged-in/ --save",
+    "build": "npm run clean && $(npm bin)/babel ./src/ --ignore node_modules --out-dir build",
     "build-docs": "./node_modules/.bin/esdoc -c esdoc.json"
   }
 }
