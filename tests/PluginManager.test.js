@@ -93,8 +93,6 @@ describe.only('PluginManager', () => {
 
       const result = await manager.init(plugin);
 
-      console.log('manager', manager);
-
       expect(result).to.deep.equal(manager);
       expect(manager._maxListeners).to.equal(10);
     } catch (error) {

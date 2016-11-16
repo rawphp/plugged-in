@@ -3,3 +3,5 @@ node_modules/**
 build/
 npm-debug.log
 !.gitignore
+examples/manager/node_modules/**
+examples/plugin/node_modules/**

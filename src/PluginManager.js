@@ -2,7 +2,6 @@ import Promise from 'bluebird';
 import fs from 'fs';
 import { EventEmitter } from 'events';
 import log from 'color-logger';
-import copy from './util/copy';
 import Npm from './Npm';
 import Event from './Event';
 
@@ -12,8 +11,10 @@ export default class PluginManager extends EventEmitter {
   /**
    * Create instance.
    *
-   * @param {Object} options       options object
-   * @param {Object} loadedModules loaded local modules
+   * @param {Object}  [options]            options object
+   * @param {Boolean} [options.debug]      debug flag
+   * @param {String}  [options.context]    context name
+   * @param {String}  [options.configFile] set the config file path
    */
   constructor(options = {}) {
     log.i('new PluginManager()', options);
@@ -68,9 +69,27 @@ export default class PluginManager extends EventEmitter {
     // Add local plugin last so that it can override externals if necessary
     await this.addPlugins([plugin]);
 
-    this.emit('postInit', new Event({ name: 'postInit', data: this }));
+    this.dispatch('postInit', this);
 
     return this;
+  }
+
+  /**
+   * Helper method to dispatch events.
+   *
+   * Note: The `data` parameter should be an object
+   *
+   * @param {String} eventName the event name
+   * @param {Object} data      the data object
+   *
+   * @returns {Object} the modified data object
+   */
+  async dispatch(eventName, data) {
+    const event = new Event({ name: eventName, data });
+
+    this.emit(eventName, event);
+
+    return data;
   }
 
   /**
@@ -174,6 +193,8 @@ export default class PluginManager extends EventEmitter {
         if (typeof handler === 'function') {
           funcs.push(handler);
         }
+
+        return null;
       });
 
       return funcs;
