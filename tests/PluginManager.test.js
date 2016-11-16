@@ -5,7 +5,7 @@ import Event from './../src/Event';
 
 chai.use(require('dirty-chai'));
 
-describe.only('PluginManager', () => {
+describe('PluginManager', () => {
   let manager;
 
   const options = {

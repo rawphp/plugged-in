@@ -64,7 +64,7 @@ export default class Npm {
             if (config.context === sysConfig.context) {
               const name = plugPkg.name;
 
-              if (name === 'plugged-in') {
+              if (name === obj.pkg.name) {
                 return;
               }
 
