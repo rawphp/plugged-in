@@ -142,7 +142,7 @@ export default class PluginManager extends EventEmitter {
               this.on(key, func);
             }
           } else if (typeof func === 'string') {
-            const handles = await this._getCallback(plugin, key); // TODO add support
+            const handles = await this._getCallback(plugin, key);
 
             handles.forEach((handle) => {
               if (this.hasHandler(key, handle) === false) {

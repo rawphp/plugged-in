@@ -8,8 +8,7 @@
 export default async function removeLinks(event) {
   const app = event.data;
 
-  // @TODO implement this more fully
-  const body = 'clean';
+  const body = app.body.replace(/<a\b[^>]*>(.*?)<\/a>/i, '');
 
   app.body = body;
 }
