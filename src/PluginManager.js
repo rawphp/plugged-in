@@ -11,22 +11,23 @@ export default class PluginManager extends EventEmitter {
   /**
    * Create instance.
    *
-   * @param {Object}  [options]            options object
-   * @param {Boolean} [options.debug]      debug flag
-   * @param {String}  [options.context]    context name
-   * @param {String}  [options.configFile] set the config file path
+   * @param {Object}  [options]               options object
+   * @param {Boolean} [options.debug]         debug flag
+   * @param {String}  [options.context]       context name
+   * @param {String}  [options.configFile]    set the config file path
+   * @param {Boolean} [options.override=true] whether to override matching functions
    */
   constructor(options = {}) {
     log.i('new PluginManager()', options);
 
     super(options);
 
-    this._debug = options.debug;
+    this._debug = options.debug || false;
+    this._override = options.override || true;
     this._configFile = options.configFile || '.plugged-in.json';
+    this.context = options.context;
 
     log.debug = options.debug || false;
-
-    this.context = options.context;
   }
 
   /**
@@ -111,6 +112,47 @@ export default class PluginManager extends EventEmitter {
   }
 
   /**
+   * Determines if a handler exists for an event.
+   *
+   * @param {String}          event   the event name
+   * @param {Function|String} handler the function or its name
+   *
+   * @returns {Boolean} true if exists, otherwise false
+   */
+  hasHandler(event, handler) {
+    const listeners = this.listeners(event)
+      .map((listener) => listener.name);
+
+    if (typeof handler === 'function') {
+      return listeners.indexOf(handler.name) !== -1;
+    }
+
+    return listeners.indexOf(handler) !== -1;
+  }
+
+  /**
+   * Removes a handler for an event that matches the handler function name.
+   *
+   * @param {String}          event   the event name
+   * @param {Function|String} handler the function or its name
+   *
+   * @returns {undefined}
+   */
+  removeHandler(event, handler) {
+    let name = handler;
+
+    if (typeof name === 'function') {
+      name = handler.name;
+    }
+
+    this.listeners(event).forEach((listener) => {
+      if (listener.name === name) {
+        this.removeListener(event, listener);
+      }
+    });
+  }
+
+  /**
    * Add local plugins.
    *
    * @param {Object[]} plugins list of plugins
@@ -122,108 +164,122 @@ export default class PluginManager extends EventEmitter {
       throw new Error('Plugins must be an array');
     }
 
-    await Promise.mapSeries(plugins, async (plugin) => {
+    await Promise.mapSeries(plugins, async (plugin) => this._processPlugin(plugin));
+  }
+
+  /**
+   * Add plugin handlers.
+   *
+   * @param {Object} plugin the plugin
+   *
+   * @returns {undefined}
+   *
+   * @private
+   */
+  async _processPlugin(plugin) {
+    try {
       if (typeof plugin.provides === 'undefined') {
-        return null;
+        return;
       }
 
       const pluginEvents = Object.keys(plugin.provides);
 
-      await Promise.mapSeries(pluginEvents, async (key) => {
-        let funcs = plugin.provides[key];
-
-        if (Array.isArray(funcs) !== true) {
-          funcs = [funcs];
-        }
-
-        await Promise.mapSeries(funcs, async (func) => {
-          if (typeof func === 'function') {
-            if (this.hasHandler(key, func) === false) {
-              this.on(key, func);
-            }
-          } else if (typeof func === 'string') {
-            const handles = await this._getCallback(plugin, key);
-
-            handles.forEach((handle) => {
-              if (this.hasHandler(key, handle) === false) {
-                this.on(key, handle);
-              }
-            });
-          } else {
-            throw new Error('Unsupported event handler', func);
-          }
-
-          return null;
-        });
-
-        return null;
-      });
-
-      return null;
-    });
+      await Promise.mapSeries(pluginEvents,
+        async (eventName) => this._processEvent(plugin, eventName));
+    } catch (error) {
+      log.e(error.message);
+    }
   }
 
   /**
-   * Determines if a handler exists for an event.
+   * Add plugin event.
    *
-   * @param {String}   event   the event name
-   * @param {Function} handler the function
+   * @param {Object} plugin    the plugin
+   * @param {String} eventName the event name
    *
-   * @returns {Boolean} true if exists, otherwise false
+   * @returns {undefined}
+   *
+   * @private
    */
-  hasHandler(event, handler) {
-    const listeners = this.listeners(event);
+  async _processEvent(plugin, eventName) {
+    try {
+      let funcs = plugin.provides[eventName];
 
-    return listeners.indexOf(handler) !== -1;
+      if (Array.isArray(funcs) !== true) {
+        funcs = [funcs];
+      }
+
+      await Promise.mapSeries(funcs, async (func) =>
+        this._processHandler(plugin, eventName, func));
+    } catch (error) {
+      log.e(error.message);
+    }
+  }
+
+  /**
+   * Add plugin handler.
+   *
+   * @param {Object}   plugin    the plugin
+   * @param {String}   eventName the event name
+   * @param {Function} handler   the handler
+   *
+   * @returns {undefined}
+   *
+   * @private
+   */
+  async _processHandler(plugin, eventName, handler) {
+    try {
+      let func = handler;
+
+      if (typeof handler === 'string') {
+        func = await this._getCallback(plugin.name, handler);
+      }
+
+      if (func === null) {
+        return;
+      }
+
+      this._consolidateHandlers(eventName, func);
+
+      this.on(eventName, func);
+    } catch (error) {
+      log.e(error.message);
+    }
+  }
+
+  /**
+   * This removes existing matching handler for an event if necessary.
+   *
+   * @param {String}   eventName event name
+   * @param {Function} handler   the handler
+   *
+   * @returns {undefined}
+   *
+   * @private
+   */
+  _consolidateHandlers(eventName, handler) {
+    if (this.hasHandler(eventName, handler) === true && this._override === true) {
+      this.removeHandler(eventName, handler);
+    }
   }
 
   /**
    * Get callback for plugin service.
    *
-   * @param {Object} plugin the plugin
-   * @param {String} eventName the name of the event
+   * @param {Object}   pluginName the plugin
+   * @param {String}   funcName   the name of the event
    *
-   * @returns {Function[]} the handler
+   * @returns {Function} the handler
    *
    * @private
    */
-  async _getCallback(plugin, eventName) {
+  async _getCallback(pluginName, funcName) {
     try {
-      const funcs = [];
+      const pg = require(`${pluginName}`); // eslint-disable-line global-require
 
-      log.d(`Checking plugin: ${plugin.name}`);
-
-      let funcNames = plugin.provides[eventName];
-
-      if (Array.isArray(funcNames) !== true) {
-        funcNames = [funcNames];
-      }
-
-      funcNames.forEach((funcName) => {
-        log.d(`Function Name: ${funcName}`);
-
-        if (funcName === 'undefined') {
-          return null;
-        }
-
-        const pg = require(`${plugin.name}`); // eslint-disable-line global-require
-
-        const handler = pg[funcName];
-
-        if (typeof handler === 'function') {
-          funcs.push(handler);
-        }
-
-        return null;
-      });
-
-      return funcs;
+      return pg[funcName];
     } catch (error) {
-      if (plugin.provides[eventName].match(/^[.\/]/)) {
-        log.e(`Unsupported action '${eventName}'`, error);
-      } else {
-        log.d(`Unsupported action '${eventName}'`, error);
-      }
+      log.e(`Unsupported action '${funcName}'`, error);
     }
 
     return null;

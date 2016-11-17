@@ -84,6 +84,10 @@ available to the plugin manager.
 
 ### Add additional Plugins on init
 
+When initialising the PluginManager, you can optionally pass your own handlers to the manager. If it matches an existing function name
+already registered it will replace it. This allows you to locally override plugin functionality. On the other hand, if you want to allow
+duplicated function names, pass `override = false` to the constructor in the options.
+
       const addInitialisedAt = (event) => {
         event.data.initialisedAt = new Date();
       };
