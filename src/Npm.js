@@ -6,6 +6,7 @@ import childProcess from 'child_process';
 import log from 'color-logger';
 import readPackage from 'read-pkg-up';
 import Event from './Event';
+import validator from './util/schemaValidator';
 
 const readFileAsync = Promise.promisify(fs.readFile);
 
@@ -67,6 +68,11 @@ export default class Npm {
               if (name === obj.pkg.name) {
                 return;
               }
+
+              await validator.validate(
+                'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#',
+                config
+              );
 
               let plugin = { name };
 
