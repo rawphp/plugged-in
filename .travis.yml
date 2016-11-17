@@ -8,12 +8,13 @@ node_js:
 sudo: false
 
 script:
-    - "npm run lint"
-    - "npm run test"
-    - "npm run coverage"
+    - npm run lint
+    - npm run test
+    - npm run coverage
 
 after_success:
     - npm run coveralls
+    - npm run codeclimate
 
 notifications:
     email:
