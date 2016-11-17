@@ -87,8 +87,8 @@
     "clean": "rm -rf build",
     "build": "npm run clean && $(npm bin)/babel ./src/ --ignore node_modules --out-dir build",
     "build-docs": "./node_modules/.bin/esdoc -c esdoc.json",
-    "publish-patch": "npm run build && npm run patch && npm publish .",
-    "publish-minor": "npm run build && npm run minor && npm publish .",
-    "publish-major": "npm run build && npm run major && npm publish ."
+    "publish-patch": "npm run build && npm version patch && npm publish .",
+    "publish-minor": "npm run build && npm version minor && npm publish .",
+    "publish-major": "npm run build && npm version major && npm publish ."
   }
 }
