@@ -28,6 +28,8 @@ export default class Application extends PluginManager {
    * Set title.
    *
    * @param {String} title the title
+   *
+   * @returns {undefined}
    */
   set title(title) {
     this._title = title;
@@ -50,6 +52,8 @@ export default class Application extends PluginManager {
    * Set body.
    *
    * @param {String} body the body
+   *
+   * @returns {undefined}
    */
   set body(body) {
     this._body = body;

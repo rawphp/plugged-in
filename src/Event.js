@@ -32,6 +32,8 @@ export default class Event {
    * Set event data.
    *
    * @param {*} data the event data
+   *
+   * @returns {undefined}
    */
   set data(data) {
     this._data = data;
