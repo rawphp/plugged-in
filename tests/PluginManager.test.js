@@ -119,4 +119,28 @@ describe('PluginManager', () => {
     expect(handlers.length).to.equal(2);
     expect(manager._maxListeners).to.equal(20);
   });
+
+  it('returns true if it has at least one handler for an event', async () => {
+    await manager.init();
+
+    expect(manager.hasHandlers('postInit')).to.equal(true);
+  });
+
+  it('returns false if it does not have any handlers for an event', async () => {
+    await manager.init();
+
+    expect(manager.hasHandlers('preInit')).to.equal(false);
+  });
+
+  it('throw error if hasHandlers() not passed an event name', async () => {
+    await manager.init();
+
+    try {
+      manager.hasHandlers();
+    } catch (error) {
+      console.log('error', error);
+
+      expect(error.message).to.equal('Undefined event name');
+    }
+  });
 });

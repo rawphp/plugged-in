@@ -131,6 +131,21 @@ export default class PluginManager extends EventEmitter {
   }
 
   /**
+   * Determines if an event has any handlers.
+   *
+   * @param {String} event the event name
+   *
+   * @returns {Boolean} true or false
+   */
+  hasHandlers(event) {
+    if (typeof event === 'undefined') {
+      throw new Error('Undefined event name');
+    }
+
+    return this.listeners(event).length > 0;
+  }
+
+  /**
    * Removes a handler for an event that matches the handler function name.
    *
    * @param {String}          event   the event name
