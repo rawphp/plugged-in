@@ -22,7 +22,6 @@
     "minimist": "^1.2.0",
     "moment": "^2.16.0",
     "optionator": "^0.8.2",
-    "plugged-in": "^0.3.0",
     "plugged-in-extras-plugin": "1.0.0",
     "read-pkg-up": "^2.0.0",
     "source-map-support": "^0.4.6",
