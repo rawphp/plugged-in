@@ -4,6 +4,7 @@ import ValidationError from './../errors/ValidationError';
 const ajv = new Ajv({ allErrors: true });
 
 ajv.addSchema(require('../../resources/schema/configuration+v1.json'));
+ajv.addSchema(require('../../resources/schema/configuration+v2.json'));
 
 export default {
   ajv,

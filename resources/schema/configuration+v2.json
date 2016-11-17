@@ -1,0 +1,35 @@
+{
+  "id": "http://plugged-in.x-c-o-d-e.com/schema/configuration+v2#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Describes the plugged-in configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "context",
+    "provides"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "description": "Schema version to use"
+    },
+    "context": {
+      "description": "The plugin context",
+      "type": "string"
+    },
+    "extends": {
+      "type": "string",
+      "description": "Name of module to extend"
+    },
+    "provides": {
+      "$ref": "#/definitions/provides"
+    }
+  },
+  "definitions": {
+    "provides": {
+      "description": "Provides object",
+      "type": "object"
+    }
+  }
+}

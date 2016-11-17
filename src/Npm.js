@@ -69,8 +69,14 @@ export default class Npm {
                 return;
               }
 
+              let schema = 'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#';
+
+              if (typeof config.schema !== 'undefined') {
+                schema = config.schema;
+              }
+
               await validator.validate(
-                'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#',
+                schema,
                 config
               );
 

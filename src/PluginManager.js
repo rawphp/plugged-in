@@ -26,6 +26,7 @@ export default class PluginManager extends EventEmitter {
     this._override = options.override || true;
     this._configFile = options.configFile || '.plugged-in.json';
     this.context = options.context;
+    this._extends = options.extends;
 
     log.debug = options.debug || false;
   }
