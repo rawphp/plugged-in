@@ -15,7 +15,6 @@
       }
     ],
     "new-cap": 2,
-    "no-console": 0,
     "func-names": 1,
     "no-unused-vars": 1,
     "require-jsdoc": 2,
@@ -28,14 +27,16 @@
     "camelcase": 2,
     "newline-before-return": 2,
     "comma-style": 2,
-    "no-underscore-dangle": 0,
-    "no-param-reassign": 0,
     "import/no-extraneous-dependencies": [
       2,
       {
         "devDependencies": true
       }
-    ]
+    ],
+    "no-unused-expressions": 0,
+    "no-underscore-dangle": 0,
+    "no-param-reassign": 0,
+    "no-console": 0
   },
   "parserOptions": {
     "ecmaFeatures": {
