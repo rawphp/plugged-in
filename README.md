@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/rawphp/plugged-in.svg?branch=master)](https://travis-ci.org/rawphp/plugged-in)
 [![Code Climate](https://codeclimate.com/github/rawphp/plugged-in/badges/gpa.svg)](https://codeclimate.com/github/rawphp/plugged-in)
+[![Test Coverage](https://codeclimate.com/github/rawphp/plugged-in/badges/coverage.svg)](https://codeclimate.com/github/rawphp/plugged-in/coverage)
+[![Issue Count](https://codeclimate.com/github/rawphp/plugged-in/badges/issue_count.svg)](https://codeclimate.com/github/rawphp/plugged-in)
 
 Plugin system for Node Js.
 
