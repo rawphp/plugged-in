@@ -108,3 +108,37 @@ duplicated function names, pass `override = false` to the constructor in the opt
         postInit: addInitialisedAt,
       });
 
+
+## API
+
+Listed is the public api of the PluginManager.
+
+#### init
+Async method to initialise the application by loading the available plugins.
+
+      await manager.init(plugin = {});
+
+#### dispatch
+Async method to dispatche events to activate plugin functionality.
+
+      await manager.dispatch(eventName, obj);
+
+#### hasHandlers
+Determines if the application has handlers for a specific event.
+
+      manager.hasHandlers(event);
+
+#### hasHandler
+Determines if the application has a specific handler for an event.
+
+      manager.hasHandler(event, handler);
+
+#### removeHandler
+Removes a specific handler from an event.
+
+      manager.removeHandler(event, handler);
+
+#### addPlugins(plugins);
+Async method to add additional plugins. Takes a list of plugins that match the plugin schema.
+
+      await manager.addPlugins(plugins);
