@@ -99,16 +99,16 @@ export default class PluginManager extends EventEmitter {
    * Note: The `data` parameter should be an object
    *
    * @param {String} eventName the event name
-   * @param {Object} data      the data object
+   * @param {Object} obj       the data object
    *
    * @returns {Object} the modified data object
    */
-  async dispatch(eventName, data) {
-    const event = new Event({ name: eventName, data });
+  async dispatch(eventName, obj) {
+    const event = new Event({ name: eventName, data: obj });
 
     this.emit(eventName, event);
 
-    return data;
+    return obj;
   }
 
   /**

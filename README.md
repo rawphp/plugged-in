@@ -64,9 +64,21 @@ These callbacks will be called in the order they are defined.
 
 To invoke the plugin's functions, you need to dispatch an event from the PluginManager (or your Application).
 
-      const event = new Event({ name: 'getTitle', data: this });
+      const obj = { body: 'current body' };
 
-      this.dispatch(event.name, event);
+      this.dispatch('getBody', obj);
+
+      const body = obj.body; // resulting value
+
+You can optionally emit an event instead if required:
+
+      import { Event } from 'plugged-in'; // added at the top of the file
+
+      const event = new Event({ name: 'getBody', data: this });
+
+      this.emit('getBody', event)
+
+      const body = event.data.body; // resulting value
 
 When execution returns after calling `dispatch`, the event's `data` property should be modified if a return value is expected.
 
