@@ -5,7 +5,7 @@
 
 Plugin system for Node Js.
 
-## NOTE: This module is under heavy development.
+## NOTE: This module is under heavy development and breaking changes are possible.
 
 ## Installation
 
