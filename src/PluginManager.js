@@ -30,6 +30,24 @@ export default class PluginManager extends EventEmitter {
   }
 
   /**
+   * Determine if running in debug mode.
+   *
+   * @returns {Boolean} true or false
+   */
+  get debug() {
+    return this._debug;
+  }
+
+  /**
+   * Get logger.
+   *
+   * @returns {Object} the logger instance
+   */
+  get log() {
+    return log;
+  }
+
+  /**
    * Initialize with plugin property.
    *
    * @param {Object} plugin local event handlers
@@ -166,6 +184,8 @@ export default class PluginManager extends EventEmitter {
    * @param {String} eventName the name of the event
    *
    * @returns {Function[]} the handler
+   *
+   * @private
    */
   async _getCallback(plugin, eventName) {
     try {

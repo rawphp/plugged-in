@@ -20,6 +20,11 @@ describe('PluginManager', () => {
   it('gets created successfully', () => {
     expect(manager instanceof PluginManager).to.equal(true);
     expect(manager.context).to.equal(options.context);
+    expect(manager.debug).to.equal(options.debug);
+  });
+
+  it('has logger in debug mode', () => {
+    expect(manager.log._debug).to.equal(true);
   });
 
   it('gets initialised successfully', async () => {
