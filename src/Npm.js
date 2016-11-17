@@ -161,31 +161,40 @@ export default class Npm {
    * @private
    */
   async getModules() {
-    const modules = [];
+    let modules = [];
 
     try {
       let result = await this.executeShell('npm ls --parseable');
 
-      result
-        .split('\n')
-        .forEach((dir) => {
-          if (dir.trim() !== '') {
-            modules.push(dir);
-          }
-        });
+      modules = this._prepareModuleList(result);
 
       result = await this.executeShell('npm ls -g --parseable');
 
-      result
-        .split('\n')
-        .forEach((dir) => {
-          if (dir.trim() !== '') {
-            modules.push(dir);
-          }
-        });
+      modules = modules.concat(this._prepareModuleList(result));
     } catch (error) {
       log.e(error);
     }
+
+    return modules;
+  }
+
+  /**
+   * Prepares module list from shell output.
+   *
+   * @param {String} data shell output
+   *
+   * @returns {String[]} list of modules
+   */
+  _prepareModuleList(data) {
+    const modules = [];
+
+    data
+      .split('\n')
+      .forEach((dir) => {
+        if (dir.trim() !== '') {
+          modules.push(dir);
+        }
+      });
 
     return modules;
   }
