@@ -27,120 +27,154 @@ describe('PluginManager', () => {
     expect(typeof manager.log._debug === 'boolean').to.equal(true);
   });
 
-  it('gets initialised successfully', async () => {
-    const result = await manager.init();
+  describe('init', () => {
+    it('gets initialised successfully', async () => {
+      const result = await manager.init();
 
-    expect(result).to.deep.equal(manager);
-    expect(typeof result._events.error).to.equal('function');
-    expect(typeof result._events.postInit[0]).to.equal('function');
-    expect(typeof result._events.postInit[1]).to.equal('function');
-  }).timeout(10000);
+      expect(result).to.deep.equal(manager);
+      expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.postInit[0]).to.equal('function');
+      expect(typeof result._events.postInit[1]).to.equal('function');
+    }).timeout(10000);
 
-  it('init with local event handlers', async () => {
-    const onGenerateConfig = (event) => {
-      event.data.createdAt = new Moment();
-    };
+    it('init with local event handlers', async () => {
+      const onGenerateConfig = (event) => {
+        event.data.createdAt = new Moment();
+      };
 
-    const plugin = {
-      provides: {
-        generateConfig: onGenerateConfig,
-      },
-    };
+      const plugin = {
+        provides: {
+          generateConfig: onGenerateConfig,
+        },
+      };
 
-    const result = await manager.init(plugin);
+      const result = await manager.init(plugin);
 
-    expect(result).to.deep.equal(manager);
-    expect(typeof result._events.generateConfig).to.equal('function');
-    expect(typeof result._events.error).to.equal('function');
-    expect(typeof result._events.postInit[0]).to.equal('function');
-    expect(typeof result._events.postInit[1]).to.equal('function');
-    expect(typeof result._events.exit).to.equal('function');
+      expect(result).to.deep.equal(manager);
+      expect(typeof result._events.generateConfig).to.equal('function');
+      expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.postInit[0]).to.equal('function');
+      expect(typeof result._events.postInit[1]).to.equal('function');
+      expect(typeof result._events.exit).to.equal('function');
+    });
+
+    it('removes listeners on exit', async () => {
+      const result = await manager.init();
+
+      const event = new Event({ name: 'exit', data: manager });
+
+      manager.emit('exit', event);
+
+      expect(result).to.deep.equal(manager);
+      expect(Object.keys(result._events).length).to.equal(0);
+    });
+
+    it('local event handler overrides external', async () => {
+      const setDefaultMaxHandlers = (event) => {
+        const mgr = event.data;
+
+        if (mgr) {
+          mgr.setMaxListeners(10);
+        }
+      };
+
+      const plugin = {
+        provides: {
+          postInit: setDefaultMaxHandlers,
+        },
+      };
+
+      await manager.init(plugin);
+
+      const handlers = manager.listeners('postInit')
+        .filter((handler) =>
+          handler.name === 'setDefaultMaxHandlers');
+
+      expect(handlers.length).to.equal(1);
+      expect(manager._maxListeners).to.equal(10);
+    });
+
+    it('local event handler adds to external', async () => {
+      const setDefaultMaxHandlers = (event) => {
+        const mgr = event.data;
+
+        if (mgr) {
+          mgr.setMaxListeners(20);
+        }
+      };
+
+      manager._override = false;
+
+      const plugin = {
+        provides: {
+          postInit: setDefaultMaxHandlers,
+        },
+      };
+
+      await manager.init(plugin);
+
+      const handlers = manager.listeners('postInit')
+        .filter((handler) =>
+          handler.name === 'setDefaultMaxHandlers');
+
+      expect(handlers.length).to.equal(2);
+      expect(manager._maxListeners).to.equal(20);
+    });
   });
 
-  it('removes listeners on exit', async () => {
-    const result = await manager.init();
+  describe('hasHandlers', () => {
+    it('returns true if it has at least one handler for an event', async () => {
+      await manager.init();
 
-    const event = new Event({ name: 'exit', data: manager });
+      expect(manager.hasHandlers('postInit')).to.equal(true);
+    });
 
-    manager.emit('exit', event);
+    it('returns false if it does not have any handlers for an event', async () => {
+      await manager.init();
 
-    expect(result).to.deep.equal(manager);
-    expect(Object.keys(result._events).length).to.equal(0);
-  });
+      expect(manager.hasHandlers('preInit')).to.equal(false);
+    });
 
-  it('local event handler overrides external', async () => {
-    const setDefaultMaxHandlers = (event) => {
-      const mgr = event.data;
+    it('throw error if hasHandlers() not passed an event name', async () => {
+      await manager.init();
 
-      if (mgr) {
-        mgr.setMaxListeners(10);
+      try {
+        manager.hasHandlers();
+      } catch (error) {
+        expect(error.message).to.equal('Undefined event name');
       }
-    };
-
-    const plugin = {
-      provides: {
-        postInit: setDefaultMaxHandlers,
-      },
-    };
-
-    await manager.init(plugin);
-
-    const handlers = manager.listeners('postInit')
-      .filter((handler) =>
-        handler.name === 'setDefaultMaxHandlers');
-
-    expect(handlers.length).to.equal(1);
-    expect(manager._maxListeners).to.equal(10);
+    });
   });
 
-  it('local event handler adds to external', async () => {
-    const setDefaultMaxHandlers = (event) => {
-      const mgr = event.data;
+  describe('dispatch', () => {
+    it('throws error if event name is not provided', async () => {
+      try {
+        await manager.init();
 
-      if (mgr) {
-        mgr.setMaxListeners(20);
+        await manager.dispatch();
+      } catch (error) {
+        expect(error.message).to.equal('Event name not provided');
       }
-    };
+    });
 
-    manager._override = false;
+    it('dispatch event without data object should work', async () => {
+      const config = { debug: true, start: 0 };
 
-    const plugin = {
-      provides: {
-        postInit: setDefaultMaxHandlers,
-      },
-    };
+      const getConfig = (event) => {
+        event.data.config = config;
+      };
 
-    await manager.init(plugin);
+      const plugin = {
+        provides: {
+          preExec: getConfig,
+        },
+      };
 
-    const handlers = manager.listeners('postInit')
-      .filter((handler) =>
-        handler.name === 'setDefaultMaxHandlers');
+      await manager.init(plugin);
 
-    expect(handlers.length).to.equal(2);
-    expect(manager._maxListeners).to.equal(20);
-  });
+      const result = await manager.dispatch('preExec');
 
-  it('returns true if it has at least one handler for an event', async () => {
-    await manager.init();
-
-    expect(manager.hasHandlers('postInit')).to.equal(true);
-  });
-
-  it('returns false if it does not have any handlers for an event', async () => {
-    await manager.init();
-
-    expect(manager.hasHandlers('preInit')).to.equal(false);
-  });
-
-  it('throw error if hasHandlers() not passed an event name', async () => {
-    await manager.init();
-
-    try {
-      manager.hasHandlers();
-    } catch (error) {
-      console.log('error', error);
-
-      expect(error.message).to.equal('Undefined event name');
-    }
+      expect(result.config).to.deep.equal(config);
+    });
   });
 });

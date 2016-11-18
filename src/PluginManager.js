@@ -104,11 +104,21 @@ export default class PluginManager extends EventEmitter {
    * @returns {Object} the modified data object
    */
   async dispatch(eventName, obj) {
-    const event = new Event({ name: eventName, data: obj });
+    if (typeof eventName === 'undefined') {
+      throw new Error('Event name not provided');
+    }
+
+    let data = obj;
+
+    if (typeof data === 'undefined') {
+      data = {};
+    }
+
+    const event = new Event({ name: eventName, data });
 
     this.emit(eventName, event);
 
-    return obj;
+    return data;
   }
 
   /**
