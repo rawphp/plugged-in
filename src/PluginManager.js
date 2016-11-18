@@ -116,6 +116,8 @@ export default class PluginManager extends EventEmitter {
 
     const event = new Event({ name: eventName, data });
 
+    log.i(`Dispatching ${event.name}...`);
+
     this.emit(eventName, event);
 
     return data;
