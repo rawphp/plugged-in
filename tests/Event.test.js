@@ -6,11 +6,11 @@ chai.use(require('dirty-chai'));
 describe('Event', () => {
   it('created successfully', () => {
     const name = 'my-event';
-    const data = 'my data';
+    const context = 'my data';
 
-    const event = new Event({ name, data });
+    const event = new Event({ name, context });
 
     expect(event.name).to.equal(name);
-    expect(event.data).to.equal(data);
+    expect(event.context).to.equal(context);
   });
 });

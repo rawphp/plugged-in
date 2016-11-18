@@ -7,9 +7,12 @@ import Event from './Event';
 
 const fileSystem = Promise.promisifyAll(fs);
 
+/**
+ * This class is usually the main part of the application.
+ */
 export default class PluginManager extends EventEmitter {
   /**
-   * Create instance.
+   * Create a new instance.
    *
    * @param {Object}  [options]               options object
    * @param {Boolean} [options.debug]         debug flag
@@ -25,9 +28,18 @@ export default class PluginManager extends EventEmitter {
     this._debug = options.debug || false;
     this._override = options.override || true;
     this._configFile = options.configFile || '.plugged-in.json';
-    this.context = options.context;
+    this._context = options.context;
 
     log.debug = options.debug || false;
+  }
+
+  /**
+   * Get the current application context.
+   *
+   * @returns {String} the context name
+   */
+  get context() {
+    return this._context;
   }
 
   /**
@@ -52,10 +64,11 @@ export default class PluginManager extends EventEmitter {
    * Initialize with plugin property.
    *
    * @param {Object} plugin local event handlers
+   * @param {Object} [npm]  optional Npm instance
    *
    * @returns {PluginManager} this plugin
    */
-  async init(plugin = {}) {
+  async init(plugin = {}, npm = new Npm({ debug: this._debug })) {
     log.i('PluginManager.init()');
 
     let data;
@@ -73,13 +86,15 @@ export default class PluginManager extends EventEmitter {
         log.d('.plugged-in.json does not exists');
 
         // find plugins
-        const npm = new Npm({ debug: this._debug });
+        // if (typeof npm === 'undefined') {
+        //   npm = new Npm({ debug: this._debug });
+        // }
 
         data = await npm.generateConfig(this);
       }
 
-      if (typeof this.context === 'undefined') {
-        this.context = data.context;
+      if (typeof this._context === 'undefined') {
+        this._context = data.context;
       }
     } catch (error) {
       log.e('PluginManager.init()', error.message);
@@ -96,31 +111,27 @@ export default class PluginManager extends EventEmitter {
   /**
    * Helper method to dispatch events.
    *
-   * Note: The `data` parameter should be an object
-   *
    * @param {String} eventName the event name
-   * @param {Object} obj       the data object
+   * @param {Object} [context] optional event context object
    *
    * @returns {Object} the modified data object
    */
-  async dispatch(eventName, obj) {
+  async dispatch(eventName, context) {
     if (typeof eventName === 'undefined') {
       throw new Error('Event name not provided');
     }
 
-    let data = obj;
-
-    if (typeof data === 'undefined') {
-      data = {};
+    if (typeof context === 'undefined') {
+      context = {};
     }
 
-    const event = new Event({ name: eventName, data });
+    const event = new Event({ name: eventName, context });
 
     log.i(`Dispatching ${event.name}...`);
 
     this.emit(eventName, event);
 
-    return data;
+    return context;
   }
 
   /**
@@ -163,7 +174,7 @@ export default class PluginManager extends EventEmitter {
    * @param {String}          event   the event name
    * @param {Function|String} handler the function or its name
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    */
   removeHandler(event, handler) {
     let name = handler;
@@ -177,14 +188,17 @@ export default class PluginManager extends EventEmitter {
         this.removeListener(event, listener);
       }
     });
+
+    return this;
   }
 
   /**
    * Add local plugins.
    *
-   * @param {Object[]} plugins list of plugins
+   * @param {Object[]} plugins          list of plugins
+   * @param {Object}   plugins.provides the provides object
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    */
   async addPlugins(plugins) {
     if (Array.isArray(plugins) === false) {
@@ -192,21 +206,24 @@ export default class PluginManager extends EventEmitter {
     }
 
     await Promise.mapSeries(plugins, async (plugin) => this._processPlugin(plugin));
+
+    return this;
   }
 
   /**
    * Add plugin handlers.
    *
-   * @param {Object} plugin the plugin
+   * @param {Object} plugin          the plugin
+   * @param {Object} plugin.provides the provides object
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    *
    * @private
    */
   async _processPlugin(plugin) {
     try {
       if (typeof plugin.provides === 'undefined') {
-        return;
+        return this;
       }
 
       const pluginEvents = Object.keys(plugin.provides);
@@ -216,6 +233,8 @@ export default class PluginManager extends EventEmitter {
     } catch (error) {
       log.e(error.message);
     }
+
+    return this;
   }
 
   /**
@@ -224,7 +243,7 @@ export default class PluginManager extends EventEmitter {
    * @param {Object} plugin    the plugin
    * @param {String} eventName the event name
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    *
    * @private
    */
@@ -241,6 +260,8 @@ export default class PluginManager extends EventEmitter {
     } catch (error) {
       log.e(error.message);
     }
+
+    return this;
   }
 
   /**
@@ -250,7 +271,7 @@ export default class PluginManager extends EventEmitter {
    * @param {String}   eventName the event name
    * @param {Function} handler   the handler
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    *
    * @private
    */
@@ -263,7 +284,7 @@ export default class PluginManager extends EventEmitter {
       }
 
       if (func === null) {
-        return;
+        return this;
       }
 
       this._consolidateHandlers(eventName, func);
@@ -272,6 +293,8 @@ export default class PluginManager extends EventEmitter {
     } catch (error) {
       log.e(error.message);
     }
+
+    return this;
   }
 
   /**
@@ -280,7 +303,7 @@ export default class PluginManager extends EventEmitter {
    * @param {String}   eventName event name
    * @param {Function} handler   the handler
    *
-   * @returns {undefined}
+   * @returns {PluginManager} this instance
    *
    * @private
    */
@@ -288,6 +311,8 @@ export default class PluginManager extends EventEmitter {
     if (this.hasHandler(eventName, handler) === true && this._override === true) {
       this.removeHandler(eventName, handler);
     }
+
+    return this;
   }
 
   /**

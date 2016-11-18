@@ -7,6 +7,7 @@ chai.use(require('dirty-chai'));
 
 describe('PluginManager', () => {
   let manager;
+  let npm;
 
   const options = {
     context: 'test-context',
@@ -14,7 +15,23 @@ describe('PluginManager', () => {
   };
 
   beforeEach(() => {
+    const onError = () => { };
+    const setInitialisedAt = () => { };
+    const setDefaultMaxHandlers = () => { };
+    const cleanUp = () => (manager._events = {});
+
     manager = new PluginManager(options);
+    npm = {
+      generateConfig: (mgr) => {
+        mgr._events = {
+          error: onError,
+          postInit: [setDefaultMaxHandlers, setInitialisedAt],
+          exit: cleanUp,
+        };
+
+        return mgr;
+      },
+    };
   });
 
   it('gets created successfully', () => {
@@ -29,7 +46,7 @@ describe('PluginManager', () => {
 
   describe('init', () => {
     it('gets initialised successfully', async () => {
-      const result = await manager.init();
+      const result = await manager.init({}, npm);
 
       expect(result).to.deep.equal(manager);
       expect(typeof result._events.error).to.equal('function');
@@ -39,7 +56,7 @@ describe('PluginManager', () => {
 
     it('init with local event handlers', async () => {
       const onGenerateConfig = (event) => {
-        event.data.createdAt = new Moment();
+        event.context.createdAt = new Moment();
       };
 
       const plugin = {
@@ -48,7 +65,7 @@ describe('PluginManager', () => {
         },
       };
 
-      const result = await manager.init(plugin);
+      const result = await manager.init(plugin, npm);
 
       expect(result).to.deep.equal(manager);
       expect(typeof result._events.generateConfig).to.equal('function');
@@ -59,9 +76,9 @@ describe('PluginManager', () => {
     });
 
     it('removes listeners on exit', async () => {
-      const result = await manager.init();
+      const result = await manager.init({}, npm);
 
-      const event = new Event({ name: 'exit', data: manager });
+      const event = new Event({ name: 'exit', context: manager });
 
       manager.emit('exit', event);
 
@@ -71,7 +88,7 @@ describe('PluginManager', () => {
 
     it('local event handler overrides external', async () => {
       const setDefaultMaxHandlers = (event) => {
-        const mgr = event.data;
+        const mgr = event.context;
 
         if (mgr) {
           mgr.setMaxListeners(10);
@@ -84,7 +101,7 @@ describe('PluginManager', () => {
         },
       };
 
-      await manager.init(plugin);
+      await manager.init(plugin, npm);
 
       const handlers = manager.listeners('postInit')
         .filter((handler) =>
@@ -96,7 +113,7 @@ describe('PluginManager', () => {
 
     it('local event handler adds to external', async () => {
       const setDefaultMaxHandlers = (event) => {
-        const mgr = event.data;
+        const mgr = event.context;
 
         if (mgr) {
           mgr.setMaxListeners(20);
@@ -111,7 +128,7 @@ describe('PluginManager', () => {
         },
       };
 
-      await manager.init(plugin);
+      await manager.init(plugin, npm);
 
       const handlers = manager.listeners('postInit')
         .filter((handler) =>
@@ -124,19 +141,19 @@ describe('PluginManager', () => {
 
   describe('hasHandlers', () => {
     it('returns true if it has at least one handler for an event', async () => {
-      await manager.init();
+      await manager.init({}, npm);
 
       expect(manager.hasHandlers('postInit')).to.equal(true);
     });
 
     it('returns false if it does not have any handlers for an event', async () => {
-      await manager.init();
+      await manager.init({}, npm);
 
       expect(manager.hasHandlers('preInit')).to.equal(false);
     });
 
     it('throw error if hasHandlers() not passed an event name', async () => {
-      await manager.init();
+      await manager.init({}, npm);
 
       try {
         manager.hasHandlers();
@@ -149,7 +166,7 @@ describe('PluginManager', () => {
   describe('dispatch', () => {
     it('throws error if event name is not provided', async () => {
       try {
-        await manager.init();
+        await manager.init({}, npm);
 
         await manager.dispatch();
       } catch (error) {
@@ -157,11 +174,11 @@ describe('PluginManager', () => {
       }
     });
 
-    it('dispatch event without data object should work', async () => {
+    it('dispatch event without context object should work', async () => {
       const config = { debug: true, start: 0 };
 
       const getConfig = (event) => {
-        event.data.config = config;
+        event.context.config = config;
       };
 
       const plugin = {
@@ -170,7 +187,7 @@ describe('PluginManager', () => {
         },
       };
 
-      await manager.init(plugin);
+      await manager.init(plugin, npm);
 
       const result = await manager.dispatch('preExec');
 

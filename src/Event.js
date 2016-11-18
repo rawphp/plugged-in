@@ -1,13 +1,18 @@
-
+/**
+ * This class represents the event that gets dispatched by the
+ * PluginManager.
+ */
 export default class Event {
   /**
    * Create a new instance.
    *
-   * @param {EventConfig} config event configuration
+   * @param {EventConfig} config         event configuration
+   * @param {String}      config.name    event name
+   * @param {Object}      config.context event context
    */
   constructor(config) {
     this._name = config.name || 'event';
-    this._data = config.data;
+    this._context = config.context;
   }
 
   /**
@@ -20,22 +25,24 @@ export default class Event {
   }
 
   /**
-   * Get event data.
+   * Get event context.
    *
-   * @returns {*} the event data
+   * @returns {Object} the event context
    */
-  get data() {
-    return this._data;
+  get context() {
+    return this._context;
   }
 
   /**
-   * Set event data.
+   * Set event context.
    *
-   * @param {*} data the event data
+   * @param {Object} context the event context
    *
-   * @returns {undefined}
+   * @returns {Event} this instance
    */
-  set data(data) {
-    this._data = data;
+  set context(context) {
+    this._context = context;
+
+    return this;
   }
 }

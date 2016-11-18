@@ -1,8 +1,11 @@
 {
   "source": "./src",
-  "destination": "./resources/docs/plugged-in",
+  "destination": "./docs",
   "excludes": [],
-  "access": ["public", "protected", "private"],
+  "access": [
+    "public",
+    "protected"
+  ],
   "debug": false,
   "index": "./README.md",
   "package": "./package.json",
@@ -11,7 +14,9 @@
     "type": "mocha",
     "source": "./tests"
   },
-  "manual": {
-    "changelog": ["./CHANGELOG.md"]
-  }
+  "plugins": [
+    {
+      "name": "esdoc-es7-plugin"
+    }
+  ]
 }

@@ -10,6 +10,9 @@ import validator from './util/schemaValidator';
 
 const readFileAsync = Promise.promisify(fs.readFile);
 
+/**
+ * Utility class used by the PluginManager to discover and load plugins.
+ */
 export default class Npm {
   /**
    * Create a new instance.
@@ -90,11 +93,11 @@ export default class Npm {
 
       manager.addPlugins(configObj.plugins);
 
-      const event = new Event({ name: 'generateConfig', data: configObj });
+      const event = new Event({ name: 'generateConfig', context: configObj });
 
       manager.emit(event.name, event);
 
-      await writeJsonFile(configPath, event.data, { indent: 2 });
+      await writeJsonFile(configPath, event.context, { indent: 2 });
 
       return configObj;
     } catch (error) {
@@ -190,6 +193,8 @@ export default class Npm {
    * @param {String} data shell output
    *
    * @returns {String[]} list of modules
+   *
+   * @private
    */
   _prepareModuleList(data) {
     const modules = [];
