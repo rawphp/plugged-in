@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">tests/PluginManager.test.js | Plugged In API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <a data-ice="repoURL" href="https://github.com/rawphp/plugged-in" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Event.js~Event.html">Event</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Npm.js~Npm.html">Npm</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/PluginManager.js~PluginManager.html">PluginManager</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">errors</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors/ValidationError.js~ValidationError.html">ValidationError</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">tests/PluginManager.test.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Moment from &apos;moment&apos;;
+import chai, { expect } from &apos;chai&apos;;
+import PluginManager from &apos;./../src/PluginManager&apos;;
+import Event from &apos;./../src/Event&apos;;
+
+chai.use(require(&apos;dirty-chai&apos;));
+
+describe(&apos;PluginManager&apos;, () =&gt; {
+  let manager;
+  let npm;
+
+  const options = {
+    context: &apos;test-context&apos;,
+    debug: false,
+  };
+
+  beforeEach(() =&gt; {
+    const onError = () =&gt; { };
+    const setInitialisedAt = () =&gt; { };
+    const setDefaultMaxHandlers = () =&gt; { };
+    const cleanUp = () =&gt; (manager._events = {});
+
+    manager = new PluginManager(options);
+    npm = {
+      generateConfig: (mgr) =&gt; {
+        mgr._events = {
+          error: onError,
+          postInit: [setDefaultMaxHandlers, setInitialisedAt],
+          exit: cleanUp,
+        };
+
+        return mgr;
+      },
+    };
+  });
+
+  it(&apos;gets created successfully&apos;, () =&gt; {
+    expect(manager instanceof PluginManager).to.equal(true);
+    expect(manager.context).to.equal(options.context);
+    expect(manager.debug).to.equal(options.debug);
+  });
+
+  it(&apos;has logger&apos;, () =&gt; {
+    expect(typeof manager.log._debug === &apos;boolean&apos;).to.equal(true);
+  });
+
+  describe(&apos;init&apos;, () =&gt; {
+    it(&apos;gets initialised successfully&apos;, async () =&gt; {
+      const result = await manager.init({}, npm);
+
+      expect(result).to.deep.equal(manager);
+      expect(typeof result._events.error).to.equal(&apos;function&apos;);
+      expect(typeof result._events.postInit[0]).to.equal(&apos;function&apos;);
+      expect(typeof result._events.postInit[1]).to.equal(&apos;function&apos;);
+    }).timeout(10000);
+
+    it(&apos;init with local event handlers&apos;, async () =&gt; {
+      const onGenerateConfig = (event) =&gt; {
+        event.context.createdAt = new Moment();
+      };
+
+      const plugin = {
+        provides: {
+          generateConfig: onGenerateConfig,
+        },
+      };
+
+      const result = await manager.init(plugin, npm);
+
+      expect(result).to.deep.equal(manager);
+      expect(typeof result._events.generateConfig).to.equal(&apos;function&apos;);
+      expect(typeof result._events.error).to.equal(&apos;function&apos;);
+      expect(typeof result._events.postInit[0]).to.equal(&apos;function&apos;);
+      expect(typeof result._events.postInit[1]).to.equal(&apos;function&apos;);
+      expect(typeof result._events.exit).to.equal(&apos;function&apos;);
+    });
+
+    it(&apos;removes listeners on exit&apos;, async () =&gt; {
+      const result = await manager.init({}, npm);
+
+      const event = new Event({ name: &apos;exit&apos;, context: manager });
+
+      manager.emit(&apos;exit&apos;, event);
+
+      expect(result).to.deep.equal(manager);
+      expect(Object.keys(result._events).length).to.equal(0);
+    });
+
+    it(&apos;local event handler overrides external&apos;, async () =&gt; {
+      const setDefaultMaxHandlers = (event) =&gt; {
+        const mgr = event.context;
+
+        if (mgr) {
+          mgr.setMaxListeners(10);
+        }
+      };
+
+      const plugin = {
+        provides: {
+          postInit: setDefaultMaxHandlers,
+        },
+      };
+
+      await manager.init(plugin, npm);
+
+      const handlers = manager.listeners(&apos;postInit&apos;)
+        .filter((handler) =&gt;
+          handler.name === &apos;setDefaultMaxHandlers&apos;);
+
+      expect(handlers.length).to.equal(1);
+      expect(manager._maxListeners).to.equal(10);
+    });
+
+    it(&apos;local event handler adds to external&apos;, async () =&gt; {
+      const setDefaultMaxHandlers = (event) =&gt; {
+        const mgr = event.context;
+
+        if (mgr) {
+          mgr.setMaxListeners(20);
+        }
+      };
+
+      manager._override = false;
+
+      const plugin = {
+        provides: {
+          postInit: setDefaultMaxHandlers,
+        },
+      };
+
+      await manager.init(plugin, npm);
+
+      const handlers = manager.listeners(&apos;postInit&apos;)
+        .filter((handler) =&gt;
+          handler.name === &apos;setDefaultMaxHandlers&apos;);
+
+      expect(handlers.length).to.equal(2);
+      expect(manager._maxListeners).to.equal(20);
+    });
+  });
+
+  describe(&apos;hasHandlers&apos;, () =&gt; {
+    it(&apos;returns true if it has at least one handler for an event&apos;, async () =&gt; {
+      await manager.init({}, npm);
+
+      expect(manager.hasHandlers(&apos;postInit&apos;)).to.equal(true);
+    });
+
+    it(&apos;returns false if it does not have any handlers for an event&apos;, async () =&gt; {
+      await manager.init({}, npm);
+
+      expect(manager.hasHandlers(&apos;preInit&apos;)).to.equal(false);
+    });
+
+    it(&apos;throw error if hasHandlers() not passed an event name&apos;, async () =&gt; {
+      await manager.init({}, npm);
+
+      try {
+        manager.hasHandlers();
+      } catch (error) {
+        expect(error.message).to.equal(&apos;Undefined event name&apos;);
+      }
+    });
+  });
+
+  describe(&apos;dispatch&apos;, () =&gt; {
+    it(&apos;throws error if event name is not provided&apos;, async () =&gt; {
+      try {
+        await manager.init({}, npm);
+
+        await manager.dispatch();
+      } catch (error) {
+        expect(error.message).to.equal(&apos;Event name not provided&apos;);
+      }
+    });
+
+    it(&apos;dispatch event without context object should work&apos;, async () =&gt; {
+      const config = { debug: true, start: 0 };
+
+      const getConfig = (event) =&gt; {
+        event.context.config = config;
+      };
+
+      const plugin = {
+        provides: {
+          preExec: getConfig,
+        },
+      };
+
+      await manager.init(plugin, npm);
+
+      const result = await manager.dispatch(&apos;preExec&apos;);
+
+      expect(result.config).to.deep.equal(config);
+    });
+  });
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

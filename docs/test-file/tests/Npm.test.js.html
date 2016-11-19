@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">tests/Npm.test.js | Plugged In API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <a data-ice="repoURL" href="https://github.com/rawphp/plugged-in" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Event.js~Event.html">Event</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Npm.js~Npm.html">Npm</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/PluginManager.js~PluginManager.html">PluginManager</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">errors</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors/ValidationError.js~ValidationError.html">ValidationError</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">tests/Npm.test.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Promise from &apos;bluebird&apos;;
+import fs from &apos;fs-extra&apos;;
+import chai, { expect } from &apos;chai&apos;;
+import Npm from &apos;./../src/Npm&apos;;
+
+chai.use(require(&apos;dirty-chai&apos;));
+
+const copyAsync = Promise.promisify(fs.copy);
+const removeAsync = Promise.promisify(fs.remove);
+const readJson = Promise.promisify(fs.readJson);
+
+describe(&apos;Npm&apos;, () =&gt; {
+  let npm;
+
+  beforeEach(() =&gt; {
+    npm = new Npm({ debug: true });
+  });
+
+  it(&apos;gets created successfully&apos;, () =&gt; {
+    expect(npm instanceof Npm).to.equal(true);
+    expect(npm._debug).to.equal(true);
+  });
+
+  describe(&apos;findPackage&apos;, () =&gt; {
+    it(&apos;finds a package.json successfully&apos;, async () =&gt; {
+      const pkg = await Npm.findPackage(`${__dirname}/../`);
+
+      expect(pkg.name).to.equal(&apos;plugged-in&apos;);
+    });
+
+    it(&apos;returns null if package not found&apos;, async () =&gt; {
+      const pkg = await Npm.findPackage(__dirname);
+
+      expect(pkg).to.equal(null);
+    });
+  });
+
+  describe(&apos;executeShell&apos;, () =&gt; {
+    it(&apos;executes ls command successfully&apos;, async () =&gt; {
+      const result = await npm.executeShell(&apos;ls&apos;);
+
+      const files = [];
+
+      result
+        .split(&apos;\n&apos;)
+        .forEach((dir) =&gt; {
+          if (dir.trim() !== &apos;&apos;) {
+            files.push(dir);
+          }
+        });
+
+      expect(files.indexOf(&apos;src&apos;)).to.not.equal(-1);
+      expect(files.indexOf(&apos;tests&apos;)).to.not.equal(-1);
+      expect(files.indexOf(&apos;node_modules&apos;)).to.not.equal(-1);
+    });
+  });
+
+  describe(&apos;getModules&apos;, () =&gt; {
+    const modulesSdkPath = `${__dirname}/../node_modules/aws-sdk`;
+
+    afterEach(async () =&gt; {
+      await removeAsync(modulesSdkPath);
+    });
+
+    it(&apos;returns empty list if `extraneous` modules are installed&apos;, async () =&gt; {
+      const sdkpath = `${__dirname}/fixtures/packages/aws-sdk`;
+
+      await copyAsync(sdkpath, modulesSdkPath);
+
+      const modules = await npm.getModules();
+
+      expect(modules.length).to.equal(0);
+    }).timeout(10000);
+
+    it(&apos;gets list of installed modules successfully&apos;, async () =&gt; {
+      const modules = await npm.getModules();
+
+      expect(modules.length &gt; 0).to.equal(true);
+      expect(typeof modules[0]).to.equal(&apos;string&apos;);
+    }).timeout(10000);
+  });
+
+  describe(&apos;generateConfig&apos;, async () =&gt; {
+    const configPath = `${__dirname}/out/config.json`;
+
+    afterEach(async () =&gt; {
+      await removeAsync(configPath);
+    });
+
+    it(&apos;generates a new .plugged-in.json file successfully&apos;, async () =&gt; {
+      const manager = {
+        addPlugins: () =&gt; manager,
+        emit: () =&gt; manager,
+      };
+
+      await npm.generateConfig(manager, configPath);
+
+      const conf = await readJson(configPath);
+
+      expect(conf.context).to.equal(&apos;plugged-in&apos;);
+      expect(conf.plugins.length).to.equal(1);
+    }).timeout(20000);
+  });
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

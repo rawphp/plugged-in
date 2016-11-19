@@ -1,0 +1,27 @@
+{
+  "coverage": "100%",
+  "expectCount": 24,
+  "actualCount": 24,
+  "files": {
+    "src/Event.js": {
+      "expectCount": 5,
+      "actualCount": 5,
+      "undocumentLines": []
+    },
+    "src/Npm.js": {
+      "expectCount": 5,
+      "actualCount": 5,
+      "undocumentLines": []
+    },
+    "src/PluginManager.js": {
+      "expectCount": 11,
+      "actualCount": 11,
+      "undocumentLines": []
+    },
+    "src/errors/ValidationError.js": {
+      "expectCount": 3,
+      "actualCount": 3,
+      "undocumentLines": []
+    }
+  }
+}

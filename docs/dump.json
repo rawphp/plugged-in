@@ -1,0 +1,2782 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/Event.js",
+    "memberof": null,
+    "longname": "src/Event.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/**\n * This class represents the event that gets dispatched by the\n * PluginManager.\n */\nexport default class Event {\n  /**\n   * Create a new instance.\n   *\n   * @param {EventConfig} config         event configuration\n   * @param {String}      config.name    event name\n   * @param {Object}      config.context event context\n   */\n  constructor(config) {\n    this._name = config.name || 'event';\n    this._context = config.context;\n  }\n\n  /**\n   * Get event name.\n   *\n   * @returns {String} the event name\n   */\n  get name() {\n    return this._name;\n  }\n\n  /**\n   * Get event context.\n   *\n   * @returns {Object} the event context\n   */\n  get context() {\n    return this._context;\n  }\n\n  /**\n   * Set event context.\n   *\n   * @param {Object} context the event context\n   *\n   * @returns {Event} this instance\n   */\n  set context(context) {\n    this._context = context;\n\n    return this;\n  }\n}\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "memberof": "src/Event.js",
+    "longname": "src/Event.js~Event",
+    "access": null,
+    "export": true,
+    "importPath": "plugged-in/src/Event.js",
+    "importStyle": "Event",
+    "description": "This class represents the event that gets dispatched by the\nPluginManager.",
+    "lineNumber": 5,
+    "interface": false
+  },
+  {
+    "__docId__": 2,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#constructor",
+    "access": null,
+    "description": "Create a new instance.",
+    "lineNumber": 13,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "EventConfig"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config",
+        "description": "event configuration"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.name",
+        "description": "event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config.context",
+        "description": "event context"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 3,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_name",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#_name",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_context",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#_context",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 5,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "name",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#name",
+    "access": null,
+    "description": "Get event name.",
+    "lineNumber": 23,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String} the event name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": "the event name"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 6,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "context",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#context",
+    "access": null,
+    "description": "Get event context.",
+    "lineNumber": 32,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} the event context"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "the event context"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 7,
+    "kind": "set",
+    "static": false,
+    "variation": null,
+    "name": "context",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#context",
+    "access": null,
+    "description": "Set event context.",
+    "lineNumber": 43,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Event} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "context",
+        "description": "the event context"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Event"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 8,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_context",
+    "memberof": "src/Event.js~Event",
+    "longname": "src/Event.js~Event#_context",
+    "access": null,
+    "description": null,
+    "lineNumber": 44,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 9,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/Npm.js",
+    "memberof": null,
+    "longname": "src/Npm.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Promise from 'bluebird';\nimport path from 'path';\nimport fs from 'fs-extra';\nimport writeJsonFile from 'write-json-file';\nimport childProcess from 'child_process';\nimport log from 'color-logger';\nimport readPackage from 'read-pkg-up';\nimport Event from './Event';\nimport validator from './util/schemaValidator';\n\nconst readFileAsync = Promise.promisify(fs.readFile);\n\n/**\n * Utility class used by the PluginManager to discover and load plugins.\n */\nexport default class Npm {\n  /**\n   * Create a new instance.\n   *\n   * @param {Object} config config object\n   */\n  constructor(config) {\n    this._debug = config.debug || false;\n\n    log.debug = this._debug;\n  }\n\n  /**\n   * Generates a plugin list.\n   *\n   * @param {String} manager  event context\n   * @param {String} filePath path to new file\n   *\n   * @returns {Object} generated config\n   */\n  async generateConfig(manager, filePath) {\n    log.i('generateConfig()');\n\n    const configPath = filePath || '.plugged-in.json';\n\n    try {\n      const obj = await readPackage();\n\n      if (typeof obj.pkg['plugged-in'] === 'undefined') {\n        throw new Error('package.json must have a `plugged-in` section definining the context');\n      }\n\n      const sysConfig = obj.pkg['plugged-in'];\n\n      const configObj = {\n        context: sysConfig.context,\n        plugins: [],\n      };\n\n      const modules = await this.getModules();\n\n      await Promise.mapSeries(modules, async (dir) => {\n        try {\n          const plugPkg = await Npm.findPackage(dir);\n\n          if (plugPkg === null) {\n            return;\n          }\n\n          const config = plugPkg['plugged-in'];\n\n          if (typeof config !== 'undefined') {\n            if (config.context === sysConfig.context) {\n              const name = plugPkg.name;\n\n              if (name === obj.pkg.name) {\n                return;\n              }\n\n              await validator.validate(\n                'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#',\n                config\n              );\n\n              let plugin = { name };\n\n              delete config.context;\n\n              plugin = Object.assign(plugin, config);\n\n              configObj.plugins.push(plugin);\n            }\n          }\n        } catch (error) {\n          log.e('process modules', error.message, dir);\n        }\n      });\n\n      manager.addPlugins(configObj.plugins);\n\n      const event = new Event({ name: 'generateConfig', context: configObj });\n\n      manager.emit(event.name, event);\n\n      await writeJsonFile(configPath, event.context, { indent: 2 });\n\n      return configObj;\n    } catch (error) {\n      log.e('generateConfig()', error.message);\n    }\n\n    return null;\n  }\n\n  /**\n   * Find package.json file.\n   *\n   * @param {String} [dir] optional directory to search\n   *\n   * @returns {Object} package\n   */\n  static async findPackage(dir) {\n    const directory = dir || __dirname;\n    let packageObj = null;\n\n    try {\n      const packageFilePath = path.join(directory, 'package.json');\n\n      const exists = fs.existsSync(packageFilePath);\n\n      if (exists === false) {\n        return packageObj;\n      }\n\n      const json = await readFileAsync(packageFilePath, { encode: 'utf8' });\n\n      packageObj = JSON.parse(json);\n    } catch (error) {\n      log.w('findPackage()', error.message);\n    }\n\n    return packageObj;\n  }\n\n  /**\n   * Execute shell command.\n   *\n   * @param {String} command command line command\n   *\n   * @returns {String} output\n   */\n  async executeShell(command) {\n    const bufferSize = 1024 * 500;\n\n    const execAsync = Promise.promisify(childProcess.exec);\n\n    try {\n      return await execAsync(command, { maxBuffer: bufferSize });\n    } catch (error) {\n      log.e(\n        error.message\n          .replace('Command failed: npm ls --parseable', '')\n          .replace('npm ERR! ', '')\n      );\n\n      return null;\n    }\n  }\n\n  /**\n   * Get installed modules.\n   *\n   * @returns {String[]} list of all module directories\n   *\n   * @private\n   */\n  async getModules() {\n    let modules = [];\n\n    try {\n      let result = await this.executeShell('npm ls --parseable');\n\n      modules = this._prepareModuleList(result);\n\n      result = await this.executeShell('npm ls -g --parseable');\n\n      modules = modules.concat(this._prepareModuleList(result));\n    } catch (error) {\n      log.e(error);\n    }\n\n    return modules;\n  }\n\n  /**\n   * Prepares module list from shell output.\n   *\n   * @param {String} data shell output\n   *\n   * @returns {String[]} list of modules\n   *\n   * @private\n   */\n  _prepareModuleList(data) {\n    const modules = [];\n\n    data\n      .split('\\n')\n      .forEach((dir) => {\n        if (dir.trim() !== '') {\n          modules.push(dir);\n        }\n      });\n\n    return modules;\n  }\n}\n"
+  },
+  {
+    "__docId__": 10,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "readFileAsync",
+    "memberof": "src/Npm.js",
+    "longname": "src/Npm.js~readFileAsync",
+    "access": null,
+    "export": false,
+    "importPath": "plugged-in/src/Npm.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "Npm",
+    "memberof": "src/Npm.js",
+    "longname": "src/Npm.js~Npm",
+    "access": null,
+    "export": true,
+    "importPath": "plugged-in/src/Npm.js",
+    "importStyle": "Npm",
+    "description": "Utility class used by the PluginManager to discover and load plugins.",
+    "lineNumber": 16,
+    "interface": false
+  },
+  {
+    "__docId__": 12,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#constructor",
+    "access": null,
+    "description": "Create a new instance.",
+    "lineNumber": 22,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "config",
+        "description": "config object"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 13,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_debug",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#_debug",
+    "access": null,
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "generateConfig",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#generateConfig",
+    "access": null,
+    "description": "Generates a plugin list.",
+    "lineNumber": 36,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} generated config"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "manager",
+        "description": "event context"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "filePath",
+        "description": "path to new file"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "generated config"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 15,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "findPackage",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm.findPackage",
+    "access": null,
+    "description": "Find package.json file.",
+    "lineNumber": 117,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} package"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "dir",
+        "description": "optional directory to search"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "package"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 16,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "executeShell",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#executeShell",
+    "access": null,
+    "description": "Execute shell command.",
+    "lineNumber": 147,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String} output"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "command",
+        "description": "command line command"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": "output"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 17,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getModules",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#getModules",
+    "access": "private",
+    "description": "Get installed modules.",
+    "lineNumber": 172,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String[]} list of all module directories"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String[]"
+      ],
+      "spread": false,
+      "description": "list of all module directories"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 18,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_prepareModuleList",
+    "memberof": "src/Npm.js~Npm",
+    "longname": "src/Npm.js~Npm#_prepareModuleList",
+    "access": "private",
+    "description": "Prepares module list from shell output.",
+    "lineNumber": 199,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String[]} list of modules"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "data",
+        "description": "shell output"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String[]"
+      ],
+      "spread": false,
+      "description": "list of modules"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 19,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/PluginManager.js",
+    "memberof": null,
+    "longname": "src/PluginManager.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Promise from 'bluebird';\nimport fs from 'fs';\nimport { EventEmitter } from 'events';\nimport log from 'color-logger';\nimport Npm from './Npm';\nimport Event from './Event';\n\nconst fileSystem = Promise.promisifyAll(fs);\n\n/**\n * This class is usually the main part of the application.\n */\nexport default class PluginManager extends EventEmitter {\n  /**\n   * Create a new instance.\n   *\n   * @param {Object}  [options]               options object\n   * @param {Boolean} [options.debug]         debug flag\n   * @param {String}  [options.context]       context name\n   * @param {String}  [options.configFile]    set the config file path\n   * @param {Boolean} [options.override=true] whether to override matching functions\n   */\n  constructor(options = {}) {\n    log.i('new PluginManager()', options);\n\n    super(options);\n\n    this._debug = options.debug || false;\n    this._override = options.override || true;\n    this._configFile = options.configFile || '.plugged-in.json';\n    this._context = options.context;\n\n    log.debug = options.debug || false;\n  }\n\n  /**\n   * Get the current application context.\n   *\n   * @returns {String} the context name\n   */\n  get context() {\n    return this._context;\n  }\n\n  /**\n   * Determine if running in debug mode.\n   *\n   * @returns {Boolean} true or false\n   */\n  get debug() {\n    return this._debug;\n  }\n\n  /**\n   * Get logger.\n   *\n   * @returns {Object} the logger instance\n   */\n  get log() {\n    return log;\n  }\n\n  /**\n   * Initialize the application.\n   *\n   * Generates config file if it does not exist and loads plugins.\n   *\n   * @param {Object} plugin local event handlers\n   * @param {Object} [npm]  optional Npm instance\n   *\n   * @returns {PluginManager} this plugin\n   */\n  async init(plugin = {}, npm = new Npm({ debug: this._debug })) {\n    log.i('PluginManager.init()');\n\n    let data;\n\n    try {\n      const exists = fileSystem.existsSync(this._configFile);\n\n      if (exists === true) {\n        data = await fileSystem.readFileAsync(this._configFile);\n\n        data = JSON.parse(data);\n\n        await this.addPlugins(data.plugins);\n      } else {\n        log.d('.plugged-in.json does not exists');\n\n        data = await npm.generateConfig(this);\n      }\n\n      if (typeof this._context === 'undefined') {\n        this._context = data.context;\n      }\n    } catch (error) {\n      log.e('PluginManager.init()', error.message);\n    }\n\n    // Add local plugin last so that it can override externals if necessary\n    await this.addPlugins([plugin]);\n\n    this.dispatch('postInit', this);\n\n    return this;\n  }\n\n  /**\n   * Helper method to dispatch events.\n   *\n   * @param {String} eventName the event name\n   * @param {Object} [context] optional event context object\n   *\n   * @returns {Object} the modified data object\n   */\n  async dispatch(eventName, context) {\n    if (typeof eventName === 'undefined') {\n      throw new Error('Event name not provided');\n    }\n\n    if (typeof context === 'undefined') {\n      context = {};\n    }\n\n    const event = new Event({ name: eventName, context });\n\n    log.i(`Dispatching ${event.name}...`);\n\n    this.emit(eventName, event);\n\n    return context;\n  }\n\n  /**\n   * Determines if a handler exists for an event.\n   *\n   * @param {String}          event   the event name\n   * @param {Function|String} handler the function or its name\n   *\n   * @returns {Boolean} true if exists, otherwise false\n   */\n  hasHandler(event, handler) {\n    const listeners = this.listeners(event)\n      .map((listener) => listener.name);\n\n    if (typeof handler === 'function') {\n      return listeners.indexOf(handler.name) !== -1;\n    }\n\n    return listeners.indexOf(handler) !== -1;\n  }\n\n  /**\n   * Determines if an event has any handlers.\n   *\n   * @param {String} event the event name\n   *\n   * @returns {Boolean} true or false\n   */\n  hasHandlers(event) {\n    if (typeof event === 'undefined') {\n      throw new Error('Undefined event name');\n    }\n\n    return this.listeners(event).length > 0;\n  }\n\n  /**\n   * Removes a handler for an event that matches the handler function name.\n   *\n   * @param {String}          event   the event name\n   * @param {Function|String} handler the function or its name\n   *\n   * @returns {PluginManager} this instance\n   */\n  removeHandler(event, handler) {\n    let name = handler;\n\n    if (typeof name === 'function') {\n      name = handler.name;\n    }\n\n    this.listeners(event).forEach((listener) => {\n      if (listener.name === name) {\n        this.removeListener(event, listener);\n      }\n    });\n\n    return this;\n  }\n\n  /**\n   * Add local plugins.\n   *\n   * @param {Object[]} plugins          list of plugins\n   * @param {Object}   plugins.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   */\n  async addPlugins(plugins) {\n    if (Array.isArray(plugins) === false) {\n      throw new Error('Plugins must be an array');\n    }\n\n    await Promise.mapSeries(plugins, async (plugin) => this._processPlugin(plugin));\n\n    return this;\n  }\n\n  /**\n   * Add plugin handlers.\n   *\n   * @param {Object} plugin          the plugin\n   * @param {Object} plugin.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processPlugin(plugin) {\n    try {\n      if (typeof plugin.provides === 'undefined') {\n        return this;\n      }\n\n      const pluginEvents = Object.keys(plugin.provides);\n\n      await Promise.mapSeries(pluginEvents,\n        async (eventName) => this._processEvent(plugin, eventName));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin event.\n   *\n   * @param {Object} plugin    the plugin\n   * @param {String} eventName the event name\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processEvent(plugin, eventName) {\n    try {\n      let funcs = plugin.provides[eventName];\n\n      if (Array.isArray(funcs) !== true) {\n        funcs = [funcs];\n      }\n\n      await Promise.mapSeries(funcs, async (func) =>\n        this._processHandler(plugin, eventName, func));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin handler.\n   *\n   * @param {Object}   plugin    the plugin\n   * @param {String}   eventName the event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processHandler(plugin, eventName, handler) {\n    try {\n      let func = handler;\n\n      if (typeof handler === 'string') {\n        func = await this._getCallback(plugin.name, handler);\n      }\n\n      if (func === null) {\n        return this;\n      }\n\n      this._consolidateHandlers(eventName, func);\n\n      this.on(eventName, func);\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * This removes existing matching handler for an event if necessary.\n   *\n   * @param {String}   eventName event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  _consolidateHandlers(eventName, handler) {\n    if (this.hasHandler(eventName, handler) === true && this._override === true) {\n      this.removeHandler(eventName, handler);\n    }\n\n    return this;\n  }\n\n  /**\n   * Get callback for plugin service.\n   *\n   * @param {Object}   pluginName the plugin\n   * @param {String}   funcName   the name of the event\n   *\n   * @returns {Function} the handler\n   *\n   * @private\n   */\n  async _getCallback(pluginName, funcName) {\n    try {\n      const pg = require(`${pluginName}`); // eslint-disable-line global-require\n\n      return pg[funcName];\n    } catch (error) {\n      log.e(`Unsupported action '${funcName}'`, error);\n    }\n\n    return null;\n  }\n}\n"
+  },
+  {
+    "__docId__": 20,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "fileSystem",
+    "memberof": "src/PluginManager.js",
+    "longname": "src/PluginManager.js~fileSystem",
+    "access": null,
+    "export": false,
+    "importPath": "plugged-in/src/PluginManager.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "PluginManager",
+    "memberof": "src/PluginManager.js",
+    "longname": "src/PluginManager.js~PluginManager",
+    "access": null,
+    "export": true,
+    "importPath": "plugged-in/src/PluginManager.js",
+    "importStyle": "PluginManager",
+    "description": "This class is usually the main part of the application.",
+    "lineNumber": 13,
+    "interface": false,
+    "extends": [
+      "events~EventEmitter"
+    ]
+  },
+  {
+    "__docId__": 22,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#constructor",
+    "access": null,
+    "description": "Create a new instance.",
+    "lineNumber": 23,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "options",
+        "description": "options object"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Boolean"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "options.debug",
+        "description": "debug flag"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "options.context",
+        "description": "context name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "options.configFile",
+        "description": "set the config file path"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Boolean"
+        ],
+        "spread": false,
+        "optional": true,
+        "defaultValue": "true",
+        "defaultRaw": true,
+        "name": "options.override",
+        "description": "whether to override matching functions"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_debug",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_debug",
+    "access": null,
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_override",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_override",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 25,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_configFile",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_configFile",
+    "access": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 26,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_context",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_context",
+    "access": null,
+    "description": null,
+    "lineNumber": 31,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 27,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "context",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#context",
+    "access": null,
+    "description": "Get the current application context.",
+    "lineNumber": 41,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String} the context name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": "the context name"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 28,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "debug",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#debug",
+    "access": null,
+    "description": "Determine if running in debug mode.",
+    "lineNumber": 50,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Boolean} true or false"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Boolean"
+      ],
+      "spread": false,
+      "description": "true or false"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 29,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "log",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#log",
+    "access": null,
+    "description": "Get logger.",
+    "lineNumber": 59,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} the logger instance"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "the logger instance"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 30,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "init",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#init",
+    "access": null,
+    "description": "Initialize the application.\n\nGenerates config file if it does not exist and loads plugins.",
+    "lineNumber": 73,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this plugin"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugin",
+        "description": "local event handlers"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "npm",
+        "description": "optional Npm instance"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this plugin"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 31,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_context",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_context",
+    "access": null,
+    "description": null,
+    "lineNumber": 94,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "dispatch",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#dispatch",
+    "access": null,
+    "description": "Helper method to dispatch events.",
+    "lineNumber": 116,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} the modified data object"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": true,
+        "name": "context",
+        "description": "optional event context object"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "the modified data object"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "hasHandler",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#hasHandler",
+    "access": null,
+    "description": "Determines if a handler exists for an event.",
+    "lineNumber": 142,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Boolean} true if exists, otherwise false"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "event",
+        "description": "the event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function",
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "handler",
+        "description": "the function or its name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Boolean"
+      ],
+      "spread": false,
+      "description": "true if exists, otherwise false"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 34,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "hasHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#hasHandlers",
+    "access": null,
+    "description": "Determines if an event has any handlers.",
+    "lineNumber": 160,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Boolean} true or false"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "event",
+        "description": "the event name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Boolean"
+      ],
+      "spread": false,
+      "description": "true or false"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 35,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeHandler",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#removeHandler",
+    "access": null,
+    "description": "Removes a handler for an event that matches the handler function name.",
+    "lineNumber": 176,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "event",
+        "description": "the event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function",
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "handler",
+        "description": "the function or its name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 36,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "addPlugins",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#addPlugins",
+    "access": null,
+    "description": "Add local plugins.",
+    "lineNumber": 200,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object[]"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugins",
+        "description": "list of plugins"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugins.provides",
+        "description": "the provides object"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 37,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_processPlugin",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_processPlugin",
+    "access": "private",
+    "description": "Add plugin handlers.",
+    "lineNumber": 220,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugin",
+        "description": "the plugin"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugin.provides",
+        "description": "the provides object"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 38,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_processEvent",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_processEvent",
+    "access": "private",
+    "description": "Add plugin event.",
+    "lineNumber": 247,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugin",
+        "description": "the plugin"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 39,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_processHandler",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_processHandler",
+    "access": "private",
+    "description": "Add plugin handler.",
+    "lineNumber": 275,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plugin",
+        "description": "the plugin"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "handler",
+        "description": "the handler"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 40,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_consolidateHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_consolidateHandlers",
+    "access": "private",
+    "description": "This removes existing matching handler for an event if necessary.",
+    "lineNumber": 307,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{PluginManager} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "handler",
+        "description": "the handler"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "PluginManager"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 41,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "_getCallback",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_getCallback",
+    "access": "private",
+    "description": "Get callback for plugin service.",
+    "lineNumber": 325,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Function} the handler"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "pluginName",
+        "description": "the plugin"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "funcName",
+        "description": "the name of the event"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Function"
+      ],
+      "spread": false,
+      "description": "the handler"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 42,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/errors/ValidationError.js",
+    "memberof": null,
+    "longname": "src/errors/ValidationError.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/**\n * The validation error class.\n *\n * Thrown by the SchemaValidator when an invalid object is passed into the `validate()` method.\n */\nexport default class ValidationError extends Error {\n  /**\n   * Create a new instance.\n   *\n   * @param {String} message the error message\n   */\n  constructor(message) {\n    super(message);\n\n    this.name = 'ValidationError';\n  }\n\n  /**\n   * @returns {String} the error name\n   */\n  get name() {\n    return this.name;\n  }\n}\n"
+  },
+  {
+    "__docId__": 43,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "ValidationError",
+    "memberof": "src/errors/ValidationError.js",
+    "longname": "src/errors/ValidationError.js~ValidationError",
+    "access": null,
+    "export": true,
+    "importPath": "plugged-in/src/errors/ValidationError.js",
+    "importStyle": "ValidationError",
+    "description": "The validation error class.\n\nThrown by the SchemaValidator when an invalid object is passed into the `validate()` method.",
+    "lineNumber": 6,
+    "interface": false,
+    "extends": [
+      "Error"
+    ]
+  },
+  {
+    "__docId__": 44,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/errors/ValidationError.js~ValidationError",
+    "longname": "src/errors/ValidationError.js~ValidationError#constructor",
+    "access": null,
+    "description": "Create a new instance.",
+    "lineNumber": 12,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "message",
+        "description": "the error message"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 45,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "name",
+    "memberof": "src/errors/ValidationError.js~ValidationError",
+    "longname": "src/errors/ValidationError.js~ValidationError#name",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 46,
+    "kind": "get",
+    "static": false,
+    "variation": null,
+    "name": "name",
+    "memberof": "src/errors/ValidationError.js~ValidationError",
+    "longname": "src/errors/ValidationError.js~ValidationError#name",
+    "access": null,
+    "description": "",
+    "lineNumber": 21,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{String} the error name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": "the error name"
+    },
+    "type": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 47,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/index.js",
+    "memberof": null,
+    "longname": "src/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import PluginManager from './PluginManager';\nimport Event from './Event';\n\nexport {\n  PluginManager,\n  Event,\n};\n"
+  },
+  {
+    "__docId__": 48,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/util/schemaValidator.js",
+    "memberof": null,
+    "longname": "src/util/schemaValidator.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Ajv from 'ajv';\nimport ValidationError from './../errors/ValidationError';\n\nconst ajv = new Ajv({ allErrors: true });\n\najv.addSchema(require('../../resources/schema/configuration+v1.json'));\n\nexport default {\n  ajv,\n  /**\n   * Validate schema.\n   *\n   * @param {String} schema schema id\n   * @param {Object} body   the object to validate\n   *\n   * @returns {Boolean} True on success and throws ValidationError on false\n   *\n   * @throws ValidationError\n   */\n  async validate(schema, body) {\n    const result = await ajv.validate(schema, body);\n\n    if (result !== true) {\n      throw new ValidationError(ajv.errorsText());\n    }\n\n    return true;\n  },\n};\n"
+  },
+  {
+    "__docId__": 49,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "ajv",
+    "memberof": "src/util/schemaValidator.js",
+    "longname": "src/util/schemaValidator.js~ajv",
+    "access": null,
+    "export": false,
+    "importPath": "plugged-in/src/util/schemaValidator.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "type": {
+      "types": [
+        "ajv~Ajv"
+      ]
+    }
+  },
+  {
+    "__docId__": 51,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 52,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 53,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 54,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 55,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 56,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 57,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 66,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 75,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 76,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 77,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 78,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "testFile",
+    "static": true,
+    "variation": null,
+    "name": "tests/Event.test.js",
+    "memberof": null,
+    "longname": "tests/Event.test.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import chai, { expect } from 'chai';\nimport Event from './../src/Event';\n\nchai.use(require('dirty-chai'));\n\ndescribe('Event', () => {\n  it('created successfully', () => {\n    const name = 'my-event';\n    const context = 'my data';\n\n    const event = new Event({ name, context });\n\n    expect(event.name).to.equal(name);\n    expect(event.context).to.equal(context);\n  });\n});\n"
+  },
+  {
+    "__docId__": 108,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe0",
+    "testId": 0,
+    "memberof": "tests/Event.test.js",
+    "testDepth": 0,
+    "longname": "tests/Event.test.js~describe0",
+    "access": null,
+    "description": "Event",
+    "lineNumber": 6
+  },
+  {
+    "__docId__": 109,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it1",
+    "testId": 1,
+    "memberof": "tests/Event.test.js~describe0",
+    "testDepth": 1,
+    "longname": "tests/Event.test.js~describe0.it1",
+    "access": null,
+    "description": "created successfully",
+    "lineNumber": 7
+  },
+  {
+    "__docId__": 110,
+    "kind": "testFile",
+    "static": true,
+    "variation": null,
+    "name": "tests/Npm.test.js",
+    "memberof": null,
+    "longname": "tests/Npm.test.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Promise from 'bluebird';\nimport fs from 'fs-extra';\nimport chai, { expect } from 'chai';\nimport Npm from './../src/Npm';\n\nchai.use(require('dirty-chai'));\n\nconst copyAsync = Promise.promisify(fs.copy);\nconst removeAsync = Promise.promisify(fs.remove);\nconst readJson = Promise.promisify(fs.readJson);\n\ndescribe('Npm', () => {\n  let npm;\n\n  beforeEach(() => {\n    npm = new Npm({ debug: true });\n  });\n\n  it('gets created successfully', () => {\n    expect(npm instanceof Npm).to.equal(true);\n    expect(npm._debug).to.equal(true);\n  });\n\n  describe('findPackage', () => {\n    it('finds a package.json successfully', async () => {\n      const pkg = await Npm.findPackage(`${__dirname}/../`);\n\n      expect(pkg.name).to.equal('plugged-in');\n    });\n\n    it('returns null if package not found', async () => {\n      const pkg = await Npm.findPackage(__dirname);\n\n      expect(pkg).to.equal(null);\n    });\n  });\n\n  describe('executeShell', () => {\n    it('executes ls command successfully', async () => {\n      const result = await npm.executeShell('ls');\n\n      const files = [];\n\n      result\n        .split('\\n')\n        .forEach((dir) => {\n          if (dir.trim() !== '') {\n            files.push(dir);\n          }\n        });\n\n      expect(files.indexOf('src')).to.not.equal(-1);\n      expect(files.indexOf('tests')).to.not.equal(-1);\n      expect(files.indexOf('node_modules')).to.not.equal(-1);\n    });\n  });\n\n  describe('getModules', () => {\n    const modulesSdkPath = `${__dirname}/../node_modules/aws-sdk`;\n\n    afterEach(async () => {\n      await removeAsync(modulesSdkPath);\n    });\n\n    it('returns empty list if `extraneous` modules are installed', async () => {\n      const sdkpath = `${__dirname}/fixtures/packages/aws-sdk`;\n\n      await copyAsync(sdkpath, modulesSdkPath);\n\n      const modules = await npm.getModules();\n\n      expect(modules.length).to.equal(0);\n    }).timeout(10000);\n\n    it('gets list of installed modules successfully', async () => {\n      const modules = await npm.getModules();\n\n      expect(modules.length > 0).to.equal(true);\n      expect(typeof modules[0]).to.equal('string');\n    }).timeout(10000);\n  });\n\n  describe('generateConfig', async () => {\n    const configPath = `${__dirname}/out/config.json`;\n\n    afterEach(async () => {\n      await removeAsync(configPath);\n    });\n\n    it('generates a new .plugged-in.json file successfully', async () => {\n      const manager = {\n        addPlugins: () => manager,\n        emit: () => manager,\n      };\n\n      await npm.generateConfig(manager, configPath);\n\n      const conf = await readJson(configPath);\n\n      expect(conf.context).to.equal('plugged-in');\n      expect(conf.plugins.length).to.equal(1);\n    }).timeout(20000);\n  });\n});\n"
+  },
+  {
+    "__docId__": 111,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe2",
+    "testId": 2,
+    "memberof": "tests/Npm.test.js",
+    "testDepth": 0,
+    "longname": "tests/Npm.test.js~describe2",
+    "access": null,
+    "description": "Npm",
+    "lineNumber": 12
+  },
+  {
+    "__docId__": 112,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it3",
+    "testId": 3,
+    "memberof": "tests/Npm.test.js~describe2",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe2.it3",
+    "access": null,
+    "description": "gets created successfully",
+    "lineNumber": 19
+  },
+  {
+    "__docId__": 113,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe4",
+    "testId": 4,
+    "memberof": "tests/Npm.test.js~describe2",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe2.describe4",
+    "access": null,
+    "description": "findPackage",
+    "lineNumber": 24
+  },
+  {
+    "__docId__": 114,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it5",
+    "testId": 5,
+    "memberof": "tests/Npm.test.js~describe2.describe4",
+    "testDepth": 2,
+    "longname": "tests/Npm.test.js~describe2.describe4.it5",
+    "access": null,
+    "description": "finds a package.json successfully",
+    "lineNumber": 25
+  },
+  {
+    "__docId__": 115,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it6",
+    "testId": 6,
+    "memberof": "tests/Npm.test.js~describe2.describe4",
+    "testDepth": 2,
+    "longname": "tests/Npm.test.js~describe2.describe4.it6",
+    "access": null,
+    "description": "returns null if package not found",
+    "lineNumber": 31
+  },
+  {
+    "__docId__": 116,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe7",
+    "testId": 7,
+    "memberof": "tests/Npm.test.js~describe2",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe2.describe7",
+    "access": null,
+    "description": "executeShell",
+    "lineNumber": 38
+  },
+  {
+    "__docId__": 117,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it8",
+    "testId": 8,
+    "memberof": "tests/Npm.test.js~describe2.describe7",
+    "testDepth": 2,
+    "longname": "tests/Npm.test.js~describe2.describe7.it8",
+    "access": null,
+    "description": "executes ls command successfully",
+    "lineNumber": 39
+  },
+  {
+    "__docId__": 118,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe9",
+    "testId": 9,
+    "memberof": "tests/Npm.test.js~describe2",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe2.describe9",
+    "access": null,
+    "description": "getModules",
+    "lineNumber": 58
+  },
+  {
+    "__docId__": 119,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe10",
+    "testId": 10,
+    "memberof": "tests/Npm.test.js~describe2",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe2.describe10",
+    "access": null,
+    "description": "generateConfig",
+    "lineNumber": 83
+  },
+  {
+    "__docId__": 120,
+    "kind": "testFile",
+    "static": true,
+    "variation": null,
+    "name": "tests/PluginManager.test.js",
+    "memberof": null,
+    "longname": "tests/PluginManager.test.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Moment from 'moment';\nimport chai, { expect } from 'chai';\nimport PluginManager from './../src/PluginManager';\nimport Event from './../src/Event';\n\nchai.use(require('dirty-chai'));\n\ndescribe('PluginManager', () => {\n  let manager;\n  let npm;\n\n  const options = {\n    context: 'test-context',\n    debug: false,\n  };\n\n  beforeEach(() => {\n    const onError = () => { };\n    const setInitialisedAt = () => { };\n    const setDefaultMaxHandlers = () => { };\n    const cleanUp = () => (manager._events = {});\n\n    manager = new PluginManager(options);\n    npm = {\n      generateConfig: (mgr) => {\n        mgr._events = {\n          error: onError,\n          postInit: [setDefaultMaxHandlers, setInitialisedAt],\n          exit: cleanUp,\n        };\n\n        return mgr;\n      },\n    };\n  });\n\n  it('gets created successfully', () => {\n    expect(manager instanceof PluginManager).to.equal(true);\n    expect(manager.context).to.equal(options.context);\n    expect(manager.debug).to.equal(options.debug);\n  });\n\n  it('has logger', () => {\n    expect(typeof manager.log._debug === 'boolean').to.equal(true);\n  });\n\n  describe('init', () => {\n    it('gets initialised successfully', async () => {\n      const result = await manager.init({}, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.error).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n    }).timeout(10000);\n\n    it('init with local event handlers', async () => {\n      const onGenerateConfig = (event) => {\n        event.context.createdAt = new Moment();\n      };\n\n      const plugin = {\n        provides: {\n          generateConfig: onGenerateConfig,\n        },\n      };\n\n      const result = await manager.init(plugin, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.generateConfig).to.equal('function');\n      expect(typeof result._events.error).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n      expect(typeof result._events.exit).to.equal('function');\n    });\n\n    it('removes listeners on exit', async () => {\n      const result = await manager.init({}, npm);\n\n      const event = new Event({ name: 'exit', context: manager });\n\n      manager.emit('exit', event);\n\n      expect(result).to.deep.equal(manager);\n      expect(Object.keys(result._events).length).to.equal(0);\n    });\n\n    it('local event handler overrides external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxListeners(10);\n        }\n      };\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.listeners('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(1);\n      expect(manager._maxListeners).to.equal(10);\n    });\n\n    it('local event handler adds to external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxListeners(20);\n        }\n      };\n\n      manager._override = false;\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.listeners('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(2);\n      expect(manager._maxListeners).to.equal(20);\n    });\n  });\n\n  describe('hasHandlers', () => {\n    it('returns true if it has at least one handler for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('postInit')).to.equal(true);\n    });\n\n    it('returns false if it does not have any handlers for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('preInit')).to.equal(false);\n    });\n\n    it('throw error if hasHandlers() not passed an event name', async () => {\n      await manager.init({}, npm);\n\n      try {\n        manager.hasHandlers();\n      } catch (error) {\n        expect(error.message).to.equal('Undefined event name');\n      }\n    });\n  });\n\n  describe('dispatch', () => {\n    it('throws error if event name is not provided', async () => {\n      try {\n        await manager.init({}, npm);\n\n        await manager.dispatch();\n      } catch (error) {\n        expect(error.message).to.equal('Event name not provided');\n      }\n    });\n\n    it('dispatch event without context object should work', async () => {\n      const config = { debug: true, start: 0 };\n\n      const getConfig = (event) => {\n        event.context.config = config;\n      };\n\n      const plugin = {\n        provides: {\n          preExec: getConfig,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const result = await manager.dispatch('preExec');\n\n      expect(result.config).to.deep.equal(config);\n    });\n  });\n});\n"
+  },
+  {
+    "__docId__": 121,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe11",
+    "testId": 11,
+    "memberof": "tests/PluginManager.test.js",
+    "testDepth": 0,
+    "longname": "tests/PluginManager.test.js~describe11",
+    "access": null,
+    "description": "PluginManager",
+    "lineNumber": 8
+  },
+  {
+    "__docId__": 122,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it12",
+    "testId": 12,
+    "memberof": "tests/PluginManager.test.js~describe11",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe11.it12",
+    "access": null,
+    "description": "gets created successfully",
+    "lineNumber": 37
+  },
+  {
+    "__docId__": 123,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it13",
+    "testId": 13,
+    "memberof": "tests/PluginManager.test.js~describe11",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe11.it13",
+    "access": null,
+    "description": "has logger",
+    "lineNumber": 43
+  },
+  {
+    "__docId__": 124,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe14",
+    "testId": 14,
+    "memberof": "tests/PluginManager.test.js~describe11",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe11.describe14",
+    "access": null,
+    "description": "init",
+    "lineNumber": 47
+  },
+  {
+    "__docId__": 125,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it15",
+    "testId": 15,
+    "memberof": "tests/PluginManager.test.js~describe11.describe14",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe14.it15",
+    "access": null,
+    "description": "init with local event handlers",
+    "lineNumber": 57
+  },
+  {
+    "__docId__": 126,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it16",
+    "testId": 16,
+    "memberof": "tests/PluginManager.test.js~describe11.describe14",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe14.it16",
+    "access": null,
+    "description": "removes listeners on exit",
+    "lineNumber": 78
+  },
+  {
+    "__docId__": 127,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it17",
+    "testId": 17,
+    "memberof": "tests/PluginManager.test.js~describe11.describe14",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe14.it17",
+    "access": null,
+    "description": "local event handler overrides external",
+    "lineNumber": 89
+  },
+  {
+    "__docId__": 128,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it18",
+    "testId": 18,
+    "memberof": "tests/PluginManager.test.js~describe11.describe14",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe14.it18",
+    "access": null,
+    "description": "local event handler adds to external",
+    "lineNumber": 114
+  },
+  {
+    "__docId__": 129,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe19",
+    "testId": 19,
+    "memberof": "tests/PluginManager.test.js~describe11",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe11.describe19",
+    "access": null,
+    "description": "hasHandlers",
+    "lineNumber": 142
+  },
+  {
+    "__docId__": 130,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it20",
+    "testId": 20,
+    "memberof": "tests/PluginManager.test.js~describe11.describe19",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe19.it20",
+    "access": null,
+    "description": "returns true if it has at least one handler for an event",
+    "lineNumber": 143
+  },
+  {
+    "__docId__": 131,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it21",
+    "testId": 21,
+    "memberof": "tests/PluginManager.test.js~describe11.describe19",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe19.it21",
+    "access": null,
+    "description": "returns false if it does not have any handlers for an event",
+    "lineNumber": 149
+  },
+  {
+    "__docId__": 132,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it22",
+    "testId": 22,
+    "memberof": "tests/PluginManager.test.js~describe11.describe19",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe19.it22",
+    "access": null,
+    "description": "throw error if hasHandlers() not passed an event name",
+    "lineNumber": 155
+  },
+  {
+    "__docId__": 133,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe23",
+    "testId": 23,
+    "memberof": "tests/PluginManager.test.js~describe11",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe11.describe23",
+    "access": null,
+    "description": "dispatch",
+    "lineNumber": 166
+  },
+  {
+    "__docId__": 134,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it24",
+    "testId": 24,
+    "memberof": "tests/PluginManager.test.js~describe11.describe23",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe23.it24",
+    "access": null,
+    "description": "throws error if event name is not provided",
+    "lineNumber": 167
+  },
+  {
+    "__docId__": 135,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it25",
+    "testId": 25,
+    "memberof": "tests/PluginManager.test.js~describe11.describe23",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe11.describe23.it25",
+    "access": null,
+    "description": "dispatch event without context object should work",
+    "lineNumber": 177
+  },
+  {
+    "__docId__": 136,
+    "kind": "testFile",
+    "static": true,
+    "variation": null,
+    "name": "tests/errors/ValidationError.test.js",
+    "memberof": null,
+    "longname": "tests/errors/ValidationError.test.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import chai, { expect } from 'chai';\nimport ValidationError from './../../src/errors/ValidationError';\n\nchai.use(require('dirty-chai'));\n\ndescribe('ValidationError', () => {\n  it('created successfully', () => {\n    const message = 'my error';\n\n    const error = new ValidationError(message);\n\n    expect(error.name).to.equal('ValidationError');\n    expect(error.message).to.equal(message);\n  });\n\n  it('allows setting custom message', () => {\n    const newMessage = 'new message';\n\n    const error = new ValidationError('');\n\n    expect(error.message).to.not.equal(newMessage);\n\n    error.message = newMessage;\n\n    expect(error.message).to.equal(newMessage);\n  });\n});\n"
+  },
+  {
+    "__docId__": 137,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe26",
+    "testId": 26,
+    "memberof": "tests/errors/ValidationError.test.js",
+    "testDepth": 0,
+    "longname": "tests/errors/ValidationError.test.js~describe26",
+    "access": null,
+    "description": "ValidationError",
+    "lineNumber": 6
+  },
+  {
+    "__docId__": 138,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it27",
+    "testId": 27,
+    "memberof": "tests/errors/ValidationError.test.js~describe26",
+    "testDepth": 1,
+    "longname": "tests/errors/ValidationError.test.js~describe26.it27",
+    "access": null,
+    "description": "created successfully",
+    "lineNumber": 7
+  },
+  {
+    "__docId__": 139,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it28",
+    "testId": 28,
+    "memberof": "tests/errors/ValidationError.test.js~describe26",
+    "testDepth": 1,
+    "longname": "tests/errors/ValidationError.test.js~describe26.it28",
+    "access": null,
+    "description": "allows setting custom message",
+    "lineNumber": 16
+  },
+  {
+    "__docId__": 140,
+    "kind": "testFile",
+    "static": true,
+    "variation": null,
+    "name": "tests/util/schemaValidator.test.js",
+    "memberof": null,
+    "longname": "tests/util/schemaValidator.test.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import chai from 'chai';\nimport Ajv from 'ajv';\nimport validator from './../../src/util/schemaValidator';\n\nconst expect = chai.expect;\n\ndescribe('schemaValidator', () => {\n  const schema = 'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#';\n\n  it('has Ajv instance as a property', () => {\n    expect(validator.ajv instanceof Ajv).to.equal(true);\n  });\n\n  it('has all available schemas', () => {\n    expect(Object.keys(validator.ajv._schemas).length).to.be.equal(2); // eslint-disable-line no-underscore-dangle, max-len\n    expect(validator.ajv.getSchema('http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#')).not.to.be.equal(undefined);\n  });\n\n  it('successfully validates correct schema', async () => {\n    const object = {\n      context: 'valid-context',\n      provides: {\n        init: 'onInit',\n      },\n    };\n\n    await validator.validate(schema, object);\n  });\n\n  it('successfully validates invalid schema', async () => {\n    try {\n      const object = {\n        context: 'valid-context',\n      };\n\n      await validator.validate(schema, object);\n    } catch (error) {\n      expect(error.message).to.equal('data should have required property \\'provides\\'');\n    }\n  });\n});\n"
+  },
+  {
+    "__docId__": 141,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe29",
+    "testId": 29,
+    "memberof": "tests/util/schemaValidator.test.js",
+    "testDepth": 0,
+    "longname": "tests/util/schemaValidator.test.js~describe29",
+    "access": null,
+    "description": "schemaValidator",
+    "lineNumber": 7
+  },
+  {
+    "__docId__": 142,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it30",
+    "testId": 30,
+    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "testDepth": 1,
+    "longname": "tests/util/schemaValidator.test.js~describe29.it30",
+    "access": null,
+    "description": "has Ajv instance as a property",
+    "lineNumber": 10
+  },
+  {
+    "__docId__": 143,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it31",
+    "testId": 31,
+    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "testDepth": 1,
+    "longname": "tests/util/schemaValidator.test.js~describe29.it31",
+    "access": null,
+    "description": "has all available schemas",
+    "lineNumber": 14
+  },
+  {
+    "__docId__": 144,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it32",
+    "testId": 32,
+    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "testDepth": 1,
+    "longname": "tests/util/schemaValidator.test.js~describe29.it32",
+    "access": null,
+    "description": "successfully validates correct schema",
+    "lineNumber": 19
+  },
+  {
+    "__docId__": 145,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it33",
+    "testId": 33,
+    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "testDepth": 1,
+    "longname": "tests/util/schemaValidator.test.js~describe29.it33",
+    "access": null,
+    "description": "successfully validates invalid schema",
+    "lineNumber": 30
+  }
+]

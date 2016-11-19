@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">Plugged In API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <a data-ice="repoURL" href="https://github.com/rawphp/plugged-in" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Event.js~Event.html">Event</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Npm.js~Npm.html">Npm</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/PluginManager.js~PluginManager.html">PluginManager</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">errors</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors/ValidationError.js~ValidationError.html">ValidationError</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="plugged-in">Plugged In</h1>
+<p><a href="https://travis-ci.org/rawphp/plugged-in"><img src="https://travis-ci.org/rawphp/plugged-in.svg?branch=master" alt="Build Status"></a>
+<a href="https://codeclimate.com/github/rawphp/plugged-in"><img src="https://codeclimate.com/github/rawphp/plugged-in/badges/gpa.svg" alt="Code Climate"></a>
+<a href="https://codeclimate.com/github/rawphp/plugged-in/coverage"><img src="https://codeclimate.com/github/rawphp/plugged-in/badges/coverage.svg" alt="Test Coverage"></a>
+<a href="https://codeclimate.com/github/rawphp/plugged-in"><img src="https://codeclimate.com/github/rawphp/plugged-in/badges/issue_count.svg" alt="Issue Count"></a></p>
+<p>Plugin system for Node Js.</p>
+<h2 id="note-this-module-is-under-heavy-development-and-breaking-changes-are-possible-">NOTE: This module is under heavy development and breaking changes are possible.</h2>
+<h2 id="installation">Installation</h2>
+<pre><code><code class="source-code prettyprint">  npm install plugged-in</code>
+</code></pre><h2 id="usage">Usage</h2>
+<p>Let&apos;s imagine that you want to create an application where it can be extended via plugin modules. To accomplish this you need to have your application class extend
+the PluginManager class.</p>
+<h4 id="application-js">Application.js</h4>
+<pre><code><code class="source-code prettyprint">  export default class Application extends PluginManager {
+    constructor(config) {
+      super(config);
+    }
+  }</code>
+</code></pre><p>Also, add the <code>plugged-in</code> configuration to your package.json and set your application <code>context</code>.</p>
+<h4 id="package-json">package.json</h4>
+<pre><code><code class="source-code prettyprint">  &quot;plugged-in&quot;: {
+    &quot;context&quot;: &quot;plugged-in-test&quot;
+  },</code>
+</code></pre><p>That&apos;s it. You&apos;re now ready to have your plugin modules get plugged-in.</p>
+<p>Now, for your plugins. Your plugin modules need to export and advertise their supported functionality.</p>
+<h4 id="package-json">package.json</h4>
+<pre><code><code class="source-code prettyprint">  &quot;plugged-in&quot;: {
+    &quot;context&quot;: &quot;plugged-in-test&quot;,
+    &quot;provides&quot;: {
+      &quot;getTitle&quot;: &quot;getTitle&quot;,
+      &quot;getBody&quot;: [
+        &quot;getBody&quot;,
+        &quot;removeLinks&quot;
+      ]
+    }
+  },</code>
+</code></pre><p>In this example, the plugin tells the PluginManager that it provides the <code>getTitle</code> and <code>getBody</code> features in the <code>plugged-in-test</code> context.</p>
+<p>Only plugins that match the PluginManager context will be plugged in.</p>
+<p>For <code>getTitle</code> it provides one event callback, the <code>getTitle(event)</code> callback and for get body, it provides two, <code>getBody(event)</code> and <code>removeLinks(event)</code>.</p>
+<p>These callbacks will be called in the order they are defined.</p>
+<p>Once your application has extended PluginManager and defined the application context. You need to call the <code>init()</code> method to generate
+the <code>.plugged-in.json</code> config and load the plugins.</p>
+<p>If the config file already exists, it will not be regenerated. The application will load the configured plugins.</p>
+<pre><code><code class="source-code prettyprint">  const app = new Application();
+  await app.init();
+  app. ...</code>
+</code></pre><h3 id="invoke-plugin-functionality">Invoke Plugin Functionality</h3>
+<p>To invoke the plugin&apos;s functions, you need to dispatch an event from the PluginManager (or your Application).</p>
+<pre><code><code class="source-code prettyprint">  const context = { body: &apos;current body&apos; };
+  await this.dispatch(&apos;getBody&apos;, context);
+  const body = context.body; // resulting value</code>
+</code></pre><p>You can optionally emit an event instead if required:</p>
+<pre><code><code class="source-code prettyprint">  import { Event } from &apos;plugged-in&apos;; // added at the top of the file
+
+  const event = new Event({ name: &apos;getBody&apos;, context: this });
+  this.emit(&apos;getBody&apos;, event)
+  const body = event.context.body; // resulting value</code>
+</code></pre><p>When execution returns after calling <code>dispatch</code>, the event&apos;s <code>context</code> property should be modified if a return value is expected.</p>
+<h2 id="more-on-usage">More on Usage</h2>
+<p>See the examples directory for usage example. The examples show the manager project and one plugin project.</p>
+<h3 id="note-">NOTE:</h3>
+<p>If you have plugins installed globally, you need to run the link command to make them available to the plugin manager. Running <code>init()</code>
+will find both local and global modules, but only local modules can be used during execution.</p>
+<pre><code><code class="source-code prettyprint">  npm link plugged-in-plugin</code>
+</code></pre><h3 id="add-additional-plugins-on-init">Add additional Plugins on init</h3>
+<p>When initialising the PluginManager, you can optionally pass your own handlers to the manager. If it matches an existing function name
+already registered it will replace it. This allows you to locally override plugin functionality. On the other hand, if you want to allow
+duplicated function names, pass <code>override = false</code> to the constructor in the options.</p>
+<pre><code><code class="source-code prettyprint">  const addInitialisedAt = (event) =&gt; {
+    event.context.initialisedAt = new Date();
+  };
+
+  await app.init({
+    postInit: addInitialisedAt,
+  });</code>
+</code></pre><h2 id="api">API</h2>
+<p>Actual api docs generated by esdoc and available at <a href="https://rawphp.github.io/plugged-in">https://rawphp.github.io/plugged-in</a>.</p>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

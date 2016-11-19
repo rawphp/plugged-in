@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/PluginManager.js | Plugged In API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <a data-ice="repoURL" href="https://github.com/rawphp/plugged-in" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Event.js~Event.html">Event</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Npm.js~Npm.html">Npm</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/PluginManager.js~PluginManager.html">PluginManager</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">errors</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors/ValidationError.js~ValidationError.html">ValidationError</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/PluginManager.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Promise from &apos;bluebird&apos;;
+import fs from &apos;fs&apos;;
+import { EventEmitter } from &apos;events&apos;;
+import log from &apos;color-logger&apos;;
+import Npm from &apos;./Npm&apos;;
+import Event from &apos;./Event&apos;;
+
+const fileSystem = Promise.promisifyAll(fs);
+
+/**
+ * This class is usually the main part of the application.
+ */
+export default class PluginManager extends EventEmitter {
+  /**
+   * Create a new instance.
+   *
+   * @param {Object}  [options]               options object
+   * @param {Boolean} [options.debug]         debug flag
+   * @param {String}  [options.context]       context name
+   * @param {String}  [options.configFile]    set the config file path
+   * @param {Boolean} [options.override=true] whether to override matching functions
+   */
+  constructor(options = {}) {
+    log.i(&apos;new PluginManager()&apos;, options);
+
+    super(options);
+
+    this._debug = options.debug || false;
+    this._override = options.override || true;
+    this._configFile = options.configFile || &apos;.plugged-in.json&apos;;
+    this._context = options.context;
+
+    log.debug = options.debug || false;
+  }
+
+  /**
+   * Get the current application context.
+   *
+   * @returns {String} the context name
+   */
+  get context() {
+    return this._context;
+  }
+
+  /**
+   * Determine if running in debug mode.
+   *
+   * @returns {Boolean} true or false
+   */
+  get debug() {
+    return this._debug;
+  }
+
+  /**
+   * Get logger.
+   *
+   * @returns {Object} the logger instance
+   */
+  get log() {
+    return log;
+  }
+
+  /**
+   * Initialize the application.
+   *
+   * Generates config file if it does not exist and loads plugins.
+   *
+   * @param {Object} plugin local event handlers
+   * @param {Object} [npm]  optional Npm instance
+   *
+   * @returns {PluginManager} this plugin
+   */
+  async init(plugin = {}, npm = new Npm({ debug: this._debug })) {
+    log.i(&apos;PluginManager.init()&apos;);
+
+    let data;
+
+    try {
+      const exists = fileSystem.existsSync(this._configFile);
+
+      if (exists === true) {
+        data = await fileSystem.readFileAsync(this._configFile);
+
+        data = JSON.parse(data);
+
+        await this.addPlugins(data.plugins);
+      } else {
+        log.d(&apos;.plugged-in.json does not exists&apos;);
+
+        data = await npm.generateConfig(this);
+      }
+
+      if (typeof this._context === &apos;undefined&apos;) {
+        this._context = data.context;
+      }
+    } catch (error) {
+      log.e(&apos;PluginManager.init()&apos;, error.message);
+    }
+
+    // Add local plugin last so that it can override externals if necessary
+    await this.addPlugins([plugin]);
+
+    this.dispatch(&apos;postInit&apos;, this);
+
+    return this;
+  }
+
+  /**
+   * Helper method to dispatch events.
+   *
+   * @param {String} eventName the event name
+   * @param {Object} [context] optional event context object
+   *
+   * @returns {Object} the modified data object
+   */
+  async dispatch(eventName, context) {
+    if (typeof eventName === &apos;undefined&apos;) {
+      throw new Error(&apos;Event name not provided&apos;);
+    }
+
+    if (typeof context === &apos;undefined&apos;) {
+      context = {};
+    }
+
+    const event = new Event({ name: eventName, context });
+
+    log.i(`Dispatching ${event.name}...`);
+
+    this.emit(eventName, event);
+
+    return context;
+  }
+
+  /**
+   * Determines if a handler exists for an event.
+   *
+   * @param {String}          event   the event name
+   * @param {Function|String} handler the function or its name
+   *
+   * @returns {Boolean} true if exists, otherwise false
+   */
+  hasHandler(event, handler) {
+    const listeners = this.listeners(event)
+      .map((listener) =&gt; listener.name);
+
+    if (typeof handler === &apos;function&apos;) {
+      return listeners.indexOf(handler.name) !== -1;
+    }
+
+    return listeners.indexOf(handler) !== -1;
+  }
+
+  /**
+   * Determines if an event has any handlers.
+   *
+   * @param {String} event the event name
+   *
+   * @returns {Boolean} true or false
+   */
+  hasHandlers(event) {
+    if (typeof event === &apos;undefined&apos;) {
+      throw new Error(&apos;Undefined event name&apos;);
+    }
+
+    return this.listeners(event).length &gt; 0;
+  }
+
+  /**
+   * Removes a handler for an event that matches the handler function name.
+   *
+   * @param {String}          event   the event name
+   * @param {Function|String} handler the function or its name
+   *
+   * @returns {PluginManager} this instance
+   */
+  removeHandler(event, handler) {
+    let name = handler;
+
+    if (typeof name === &apos;function&apos;) {
+      name = handler.name;
+    }
+
+    this.listeners(event).forEach((listener) =&gt; {
+      if (listener.name === name) {
+        this.removeListener(event, listener);
+      }
+    });
+
+    return this;
+  }
+
+  /**
+   * Add local plugins.
+   *
+   * @param {Object[]} plugins          list of plugins
+   * @param {Object}   plugins.provides the provides object
+   *
+   * @returns {PluginManager} this instance
+   */
+  async addPlugins(plugins) {
+    if (Array.isArray(plugins) === false) {
+      throw new Error(&apos;Plugins must be an array&apos;);
+    }
+
+    await Promise.mapSeries(plugins, async (plugin) =&gt; this._processPlugin(plugin));
+
+    return this;
+  }
+
+  /**
+   * Add plugin handlers.
+   *
+   * @param {Object} plugin          the plugin
+   * @param {Object} plugin.provides the provides object
+   *
+   * @returns {PluginManager} this instance
+   *
+   * @private
+   */
+  async _processPlugin(plugin) {
+    try {
+      if (typeof plugin.provides === &apos;undefined&apos;) {
+        return this;
+      }
+
+      const pluginEvents = Object.keys(plugin.provides);
+
+      await Promise.mapSeries(pluginEvents,
+        async (eventName) =&gt; this._processEvent(plugin, eventName));
+    } catch (error) {
+      log.e(error.message);
+    }
+
+    return this;
+  }
+
+  /**
+   * Add plugin event.
+   *
+   * @param {Object} plugin    the plugin
+   * @param {String} eventName the event name
+   *
+   * @returns {PluginManager} this instance
+   *
+   * @private
+   */
+  async _processEvent(plugin, eventName) {
+    try {
+      let funcs = plugin.provides[eventName];
+
+      if (Array.isArray(funcs) !== true) {
+        funcs = [funcs];
+      }
+
+      await Promise.mapSeries(funcs, async (func) =&gt;
+        this._processHandler(plugin, eventName, func));
+    } catch (error) {
+      log.e(error.message);
+    }
+
+    return this;
+  }
+
+  /**
+   * Add plugin handler.
+   *
+   * @param {Object}   plugin    the plugin
+   * @param {String}   eventName the event name
+   * @param {Function} handler   the handler
+   *
+   * @returns {PluginManager} this instance
+   *
+   * @private
+   */
+  async _processHandler(plugin, eventName, handler) {
+    try {
+      let func = handler;
+
+      if (typeof handler === &apos;string&apos;) {
+        func = await this._getCallback(plugin.name, handler);
+      }
+
+      if (func === null) {
+        return this;
+      }
+
+      this._consolidateHandlers(eventName, func);
+
+      this.on(eventName, func);
+    } catch (error) {
+      log.e(error.message);
+    }
+
+    return this;
+  }
+
+  /**
+   * This removes existing matching handler for an event if necessary.
+   *
+   * @param {String}   eventName event name
+   * @param {Function} handler   the handler
+   *
+   * @returns {PluginManager} this instance
+   *
+   * @private
+   */
+  _consolidateHandlers(eventName, handler) {
+    if (this.hasHandler(eventName, handler) === true &amp;&amp; this._override === true) {
+      this.removeHandler(eventName, handler);
+    }
+
+    return this;
+  }
+
+  /**
+   * Get callback for plugin service.
+   *
+   * @param {Object}   pluginName the plugin
+   * @param {String}   funcName   the name of the event
+   *
+   * @returns {Function} the handler
+   *
+   * @private
+   */
+  async _getCallback(pluginName, funcName) {
+    try {
+      const pg = require(`${pluginName}`); // eslint-disable-line global-require
+
+      return pg[funcName];
+    } catch (error) {
+      log.e(`Unsupported action &apos;${funcName}&apos;`, error);
+    }
+
+    return null;
+  }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

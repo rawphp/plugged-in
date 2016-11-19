@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/Npm.js | Plugged In API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <a data-ice="repoURL" href="https://github.com/rawphp/plugged-in" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Event.js~Event.html">Event</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/Npm.js~Npm.html">Npm</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/PluginManager.js~PluginManager.html">PluginManager</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">errors</div><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors/ValidationError.js~ValidationError.html">ValidationError</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/Npm.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Promise from &apos;bluebird&apos;;
+import path from &apos;path&apos;;
+import fs from &apos;fs-extra&apos;;
+import writeJsonFile from &apos;write-json-file&apos;;
+import childProcess from &apos;child_process&apos;;
+import log from &apos;color-logger&apos;;
+import readPackage from &apos;read-pkg-up&apos;;
+import Event from &apos;./Event&apos;;
+import validator from &apos;./util/schemaValidator&apos;;
+
+const readFileAsync = Promise.promisify(fs.readFile);
+
+/**
+ * Utility class used by the PluginManager to discover and load plugins.
+ */
+export default class Npm {
+  /**
+   * Create a new instance.
+   *
+   * @param {Object} config config object
+   */
+  constructor(config) {
+    this._debug = config.debug || false;
+
+    log.debug = this._debug;
+  }
+
+  /**
+   * Generates a plugin list.
+   *
+   * @param {String} manager  event context
+   * @param {String} filePath path to new file
+   *
+   * @returns {Object} generated config
+   */
+  async generateConfig(manager, filePath) {
+    log.i(&apos;generateConfig()&apos;);
+
+    const configPath = filePath || &apos;.plugged-in.json&apos;;
+
+    try {
+      const obj = await readPackage();
+
+      if (typeof obj.pkg[&apos;plugged-in&apos;] === &apos;undefined&apos;) {
+        throw new Error(&apos;package.json must have a `plugged-in` section definining the context&apos;);
+      }
+
+      const sysConfig = obj.pkg[&apos;plugged-in&apos;];
+
+      const configObj = {
+        context: sysConfig.context,
+        plugins: [],
+      };
+
+      const modules = await this.getModules();
+
+      await Promise.mapSeries(modules, async (dir) =&gt; {
+        try {
+          const plugPkg = await Npm.findPackage(dir);
+
+          if (plugPkg === null) {
+            return;
+          }
+
+          const config = plugPkg[&apos;plugged-in&apos;];
+
+          if (typeof config !== &apos;undefined&apos;) {
+            if (config.context === sysConfig.context) {
+              const name = plugPkg.name;
+
+              if (name === obj.pkg.name) {
+                return;
+              }
+
+              await validator.validate(
+                &apos;http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#&apos;,
+                config
+              );
+
+              let plugin = { name };
+
+              delete config.context;
+
+              plugin = Object.assign(plugin, config);
+
+              configObj.plugins.push(plugin);
+            }
+          }
+        } catch (error) {
+          log.e(&apos;process modules&apos;, error.message, dir);
+        }
+      });
+
+      manager.addPlugins(configObj.plugins);
+
+      const event = new Event({ name: &apos;generateConfig&apos;, context: configObj });
+
+      manager.emit(event.name, event);
+
+      await writeJsonFile(configPath, event.context, { indent: 2 });
+
+      return configObj;
+    } catch (error) {
+      log.e(&apos;generateConfig()&apos;, error.message);
+    }
+
+    return null;
+  }
+
+  /**
+   * Find package.json file.
+   *
+   * @param {String} [dir] optional directory to search
+   *
+   * @returns {Object} package
+   */
+  static async findPackage(dir) {
+    const directory = dir || __dirname;
+    let packageObj = null;
+
+    try {
+      const packageFilePath = path.join(directory, &apos;package.json&apos;);
+
+      const exists = fs.existsSync(packageFilePath);
+
+      if (exists === false) {
+        return packageObj;
+      }
+
+      const json = await readFileAsync(packageFilePath, { encode: &apos;utf8&apos; });
+
+      packageObj = JSON.parse(json);
+    } catch (error) {
+      log.w(&apos;findPackage()&apos;, error.message);
+    }
+
+    return packageObj;
+  }
+
+  /**
+   * Execute shell command.
+   *
+   * @param {String} command command line command
+   *
+   * @returns {String} output
+   */
+  async executeShell(command) {
+    const bufferSize = 1024 * 500;
+
+    const execAsync = Promise.promisify(childProcess.exec);
+
+    try {
+      return await execAsync(command, { maxBuffer: bufferSize });
+    } catch (error) {
+      log.e(
+        error.message
+          .replace(&apos;Command failed: npm ls --parseable&apos;, &apos;&apos;)
+          .replace(&apos;npm ERR! &apos;, &apos;&apos;)
+      );
+
+      return null;
+    }
+  }
+
+  /**
+   * Get installed modules.
+   *
+   * @returns {String[]} list of all module directories
+   *
+   * @private
+   */
+  async getModules() {
+    let modules = [];
+
+    try {
+      let result = await this.executeShell(&apos;npm ls --parseable&apos;);
+
+      modules = this._prepareModuleList(result);
+
+      result = await this.executeShell(&apos;npm ls -g --parseable&apos;);
+
+      modules = modules.concat(this._prepareModuleList(result));
+    } catch (error) {
+      log.e(error);
+    }
+
+    return modules;
+  }
+
+  /**
+   * Prepares module list from shell output.
+   *
+   * @param {String} data shell output
+   *
+   * @returns {String[]} list of modules
+   *
+   * @private
+   */
+  _prepareModuleList(data) {
+    const modules = [];
+
+    data
+      .split(&apos;\n&apos;)
+      .forEach((dir) =&gt; {
+        if (dir.trim() !== &apos;&apos;) {
+          modules.push(dir);
+        }
+      });
+
+    return modules;
+  }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
