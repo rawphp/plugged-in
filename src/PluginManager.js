@@ -61,7 +61,9 @@ export default class PluginManager extends EventEmitter {
   }
 
   /**
-   * Initialize with plugin property.
+   * Initialize the application.
+   *
+   * Generates config file if it does not exist and loads plugins.
    *
    * @param {Object} plugin local event handlers
    * @param {Object} [npm]  optional Npm instance
@@ -84,11 +86,6 @@ export default class PluginManager extends EventEmitter {
         await this.addPlugins(data.plugins);
       } else {
         log.d('.plugged-in.json does not exists');
-
-        // find plugins
-        // if (typeof npm === 'undefined') {
-        //   npm = new Npm({ debug: this._debug });
-        // }
 
         data = await npm.generateConfig(this);
       }

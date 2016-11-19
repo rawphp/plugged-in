@@ -12,4 +12,16 @@ describe('ValidationError', () => {
     expect(error.name).to.equal('ValidationError');
     expect(error.message).to.equal(message);
   });
+
+  it('allows setting custom message', () => {
+    const newMessage = 'new message';
+
+    const error = new ValidationError('');
+
+    expect(error.message).to.not.equal(newMessage);
+
+    error.message = newMessage;
+
+    expect(error.message).to.equal(newMessage);
+  });
 });
