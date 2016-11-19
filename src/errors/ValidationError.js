@@ -14,4 +14,11 @@ export default class ValidationError extends Error {
 
     this.name = 'ValidationError';
   }
+
+  /**
+   * @returns {String} the error name
+   */
+  get name() {
+    return this.name;
+  }
 }
