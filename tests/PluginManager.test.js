@@ -15,10 +15,10 @@ describe('PluginManager', () => {
   };
 
   beforeEach(() => {
-    const onError = () => { };
-    const setInitialisedAt = () => { };
-    const setDefaultMaxHandlers = () => { };
-    const cleanUp = () => (manager._events = {});
+    function onError() { }
+    function setInitialisedAt() { }
+    function setDefaultMaxHandlers() { }
+    function cleanUp() { manager._events = {}; }
 
     manager = new PluginManager(options);
     npm = {

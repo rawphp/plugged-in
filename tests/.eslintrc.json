@@ -17,7 +17,7 @@
     "new-cap": 2,
     "func-names": 1,
     "no-unused-vars": 1,
-    "require-jsdoc": 2,
+    "require-jsdoc": 0,
     "valid-jsdoc": 2,
     "valid-typeof": 2,
     "block-scoped-var": 2,
