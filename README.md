@@ -7,8 +7,6 @@
 
 Plugin system for Node Js.
 
-## NOTE: This module is under heavy development and breaking changes are possible.
-
 ## Installation
 
       npm install plugged-in
