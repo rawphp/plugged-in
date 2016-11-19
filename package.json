@@ -1,6 +1,6 @@
 {
   "name": "plugged-in",
-  "version": "0.4.5",
+  "version": "1.0.0",
   "description": "A plugin system for node js.",
   "main": "build/index.js",
   "author": "Tom Kaczocha <tom.kaczocha@temando.com>",
