@@ -58,10 +58,10 @@ describe(&apos;PluginManager&apos;, () =&gt; {
   };
 
   beforeEach(() =&gt; {
-    const onError = () =&gt; { };
-    const setInitialisedAt = () =&gt; { };
-    const setDefaultMaxHandlers = () =&gt; { };
-    const cleanUp = () =&gt; (manager._events = {});
+    function onError() { }
+    function setInitialisedAt() { }
+    function setDefaultMaxHandlers() { }
+    function cleanUp() { manager._events = {}; }
 
     manager = new PluginManager(options);
     npm = {
