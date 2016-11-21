@@ -166,7 +166,7 @@ export default class PluginManager {
    * @returns {Object} this instance
    */
   addHandler(eventName, handler) {
-    log.i('addHandler', eventName, handler);
+    log.i(`addHandler() ${handler.name} for ${eventName}`);
 
     const handlers = this.handlers(eventName);
 
