@@ -1,7 +1,6 @@
 import Moment from 'moment';
 import chai, { expect } from 'chai';
 import PluginManager from './../src/PluginManager';
-import Event from './../src/Event';
 
 chai.use(require('dirty-chai'));
 
