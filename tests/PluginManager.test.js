@@ -5,28 +5,28 @@ import Event from './../src/Event';
 
 chai.use(require('dirty-chai'));
 
-describe('PluginManager', () => {
+describe.only('PluginManager', () => {
   let manager;
   let npm;
 
   const options = {
     context: 'test-context',
-    debug: false,
+    debug: true,
   };
 
   beforeEach(() => {
     function onError() { }
     function setInitialisedAt() { }
     function setDefaultMaxHandlers() { }
-    function cleanUp() { manager._events = {}; }
+    function cleanUp(event) { event.context._events = {}; }
 
     manager = new PluginManager(options);
     npm = {
       generateConfig: (mgr) => {
         mgr._events = {
-          error: onError,
+          error: [onError],
           postInit: [setDefaultMaxHandlers, setInitialisedAt],
-          exit: cleanUp,
+          exit: [cleanUp],
         };
 
         return mgr;
@@ -49,12 +49,12 @@ describe('PluginManager', () => {
       const result = await manager.init({}, npm);
 
       expect(result).to.deep.equal(manager);
-      expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.error[0]).to.equal('function');
       expect(typeof result._events.postInit[0]).to.equal('function');
       expect(typeof result._events.postInit[1]).to.equal('function');
     }).timeout(10000);
 
-    it('init with local event handlers', async () => {
+    it('with local event handlers', async () => {
       const onGenerateConfig = (event) => {
         event.context.createdAt = new Moment();
       };
@@ -68,19 +68,17 @@ describe('PluginManager', () => {
       const result = await manager.init(plugin, npm);
 
       expect(result).to.deep.equal(manager);
-      expect(typeof result._events.generateConfig).to.equal('function');
-      expect(typeof result._events.error).to.equal('function');
+      expect(typeof result._events.generateConfig[0]).to.equal('function');
+      expect(typeof result._events.error[0]).to.equal('function');
       expect(typeof result._events.postInit[0]).to.equal('function');
       expect(typeof result._events.postInit[1]).to.equal('function');
-      expect(typeof result._events.exit).to.equal('function');
+      expect(typeof result._events.exit[0]).to.equal('function');
     });
 
-    it('removes listeners on exit', async () => {
+    it('removes handler on exit', async () => {
       const result = await manager.init({}, npm);
 
-      const event = new Event({ name: 'exit', context: manager });
-
-      manager.emit('exit', event);
+      await manager.dispatch('exit', manager);
 
       expect(result).to.deep.equal(manager);
       expect(Object.keys(result._events).length).to.equal(0);
@@ -91,7 +89,7 @@ describe('PluginManager', () => {
         const mgr = event.context;
 
         if (mgr) {
-          mgr.setMaxListeners(10);
+          mgr.setMaxHandlers(10);
         }
       };
 
@@ -103,12 +101,12 @@ describe('PluginManager', () => {
 
       await manager.init(plugin, npm);
 
-      const handlers = manager.listeners('postInit')
+      const handlers = manager.handlers('postInit')
         .filter((handler) =>
           handler.name === 'setDefaultMaxHandlers');
 
       expect(handlers.length).to.equal(1);
-      expect(manager._maxListeners).to.equal(10);
+      expect(manager._defaultMaxHandlers).to.equal(10);
     });
 
     it('local event handler adds to external', async () => {
@@ -116,7 +114,7 @@ describe('PluginManager', () => {
         const mgr = event.context;
 
         if (mgr) {
-          mgr.setMaxListeners(20);
+          mgr.setMaxHandlers(20);
         }
       };
 
@@ -130,12 +128,12 @@ describe('PluginManager', () => {
 
       await manager.init(plugin, npm);
 
-      const handlers = manager.listeners('postInit')
+      const handlers = manager.handlers('postInit')
         .filter((handler) =>
           handler.name === 'setDefaultMaxHandlers');
 
       expect(handlers.length).to.equal(2);
-      expect(manager._maxListeners).to.equal(20);
+      expect(manager._defaultMaxHandlers).to.equal(20);
     });
   });
 

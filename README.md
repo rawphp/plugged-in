@@ -75,15 +75,8 @@ To invoke the plugin's functions, you need to dispatch an event from the PluginM
       await this.dispatch('getBody', context);
       const body = context.body; // resulting value
 
-You can optionally emit an event instead if required:
-
-      import { Event } from 'plugged-in'; // added at the top of the file
-
-      const event = new Event({ name: 'getBody', context: this });
-      this.emit('getBody', event)
-      const body = event.context.body; // resulting value
-
-When execution returns after calling `dispatch`, the event's `context` property should be modified if a return value is expected.
+To get a return value from an event execution, set the desired data on the context property of the event. This is what get's returned from the 
+`dispatch` call.
 
 
 ## More on Usage

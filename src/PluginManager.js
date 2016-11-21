@@ -1,6 +1,5 @@
 import Promise from 'bluebird';
 import fs from 'fs';
-import { EventEmitter } from 'events';
 import log from 'color-logger';
 import Npm from './Npm';
 import Event from './Event';
@@ -10,7 +9,7 @@ const fileSystem = Promise.promisifyAll(fs);
 /**
  * This class is usually the main part of the application.
  */
-export default class PluginManager extends EventEmitter {
+export default class PluginManager {
   /**
    * Create a new instance.
    *
@@ -23,11 +22,11 @@ export default class PluginManager extends EventEmitter {
   constructor(options = {}) {
     log.i('new PluginManager()', options);
 
-    super(options);
-
+    this._events = {};
     this._debug = options.debug || false;
     this._override = options.override || true;
     this._configFile = options.configFile || '.plugged-in.json';
+    this._defaultMaxHandlers = null;
     this._context = options.context;
 
     log.debug = options.debug || false;
@@ -126,9 +125,90 @@ export default class PluginManager extends EventEmitter {
 
     log.i(`Dispatching ${event.name}...`);
 
-    this.emit(eventName, event);
+    const handlers = this.handlers(event.name);
+
+    await Promise.mapSeries(handlers, async (func) => {
+      console.log('Executing', func.name);
+
+      try {
+        await func(event);
+      } catch (error) {
+        throw error;
+      }
+    });
 
     return context;
+  }
+
+  /**
+   * Get list of handlers for an event.
+   *
+   * @param {String} eventName the event name
+   *
+   * @returns {Function[]} list of handlers
+   */
+  handlers(eventName) {
+    const result = this._events[eventName];
+
+    if (typeof result === 'undefined') {
+      return [];
+    }
+
+    return result;
+  }
+
+  /**
+   * Adds a new handler to the event list.
+   *
+   * @param {String}   eventName the event name
+   * @param {Function} handler   the callback function
+   *
+   * @returns {Object} this instance
+   */
+  addHandler(eventName, handler) {
+    log.i('addHandler', eventName, handler);
+
+    const handlers = this.handlers(eventName);
+
+    if (handlers.length === 0) {
+      this._events[eventName] = [];
+    }
+
+    if (this._defaultMaxHandlers !== null
+      && handlers.length + 1 > this._defaultMaxHandlers
+    ) {
+      throw new Error(`Exceeded maximum number of handlers for '${eventName}' event`);
+    }
+
+    this._events[eventName].push(handler);
+
+    return this;
+  }
+
+  /**
+   * Get max event handlers.
+   *
+   * @returns {Integer} max number of handlers
+   */
+  getMaxHandlers() {
+    return this._defaultMaxHandlers;
+  }
+
+  /**
+   * Set max number of event handlers.
+   *
+   * @param {Integer} count max number
+   *
+   * @returns {Object} this instance
+   */
+  setMaxHandlers(count) {
+    if (Number.isNaN(count)) {
+      throw new Error(`Count: '${count}' is not a number`);
+    }
+
+    this._defaultMaxHandlers = count;
+
+    return this;
   }
 
   /**
@@ -140,14 +220,14 @@ export default class PluginManager extends EventEmitter {
    * @returns {Boolean} true if exists, otherwise false
    */
   hasHandler(event, handler) {
-    const listeners = this.listeners(event)
-      .map((listener) => listener.name);
+    const handlers = this.handlers(event)
+      .map((handle) => handle.name);
 
     if (typeof handler === 'function') {
-      return listeners.indexOf(handler.name) !== -1;
+      return handlers.indexOf(handler.name) !== -1;
     }
 
-    return listeners.indexOf(handler) !== -1;
+    return handlers.indexOf(handler) !== -1;
   }
 
   /**
@@ -162,29 +242,46 @@ export default class PluginManager extends EventEmitter {
       throw new Error('Undefined event name');
     }
 
-    return this.listeners(event).length > 0;
+    return this.handlers(event).length > 0;
   }
 
   /**
    * Removes a handler for an event that matches the handler function name.
    *
-   * @param {String}          event   the event name
-   * @param {Function|String} handler the function or its name
+   * @param {String}          eventName the event name
+   * @param {Function|String} handler   the function or its name
    *
    * @returns {PluginManager} this instance
    */
-  removeHandler(event, handler) {
+  removeHandler(eventName, handler) {
     let name = handler;
 
     if (typeof name === 'function') {
       name = handler.name;
     }
 
-    this.listeners(event).forEach((listener) => {
-      if (listener.name === name) {
-        this.removeListener(event, listener);
+    let index = 0;
+
+    this.handlers(eventName).forEach((handle) => {
+      if (handle.name === name) {
+        this._events[eventName].splice([index], 1);
       }
+
+      index += 1;
     });
+
+    return this;
+  }
+
+  /**
+   * Deletes all handlers for an event.
+   *
+   * @param {String} eventName the event name to removes
+   *
+   * @returns {Object} this instance
+   */
+  removeAllHandlers(eventName) {
+    this._events[eventName] = [];
 
     return this;
   }
@@ -284,9 +381,9 @@ export default class PluginManager extends EventEmitter {
         return this;
       }
 
-      this._consolidateHandlers(eventName, func);
-
-      this.on(eventName, func);
+      this
+        ._consolidateHandlers(eventName, func)
+        .addHandler(eventName, func);
     } catch (error) {
       log.e(error.message);
     }
