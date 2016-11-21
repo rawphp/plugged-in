@@ -533,7 +533,7 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "import Promise from 'bluebird';\nimport fs from 'fs';\nimport { EventEmitter } from 'events';\nimport log from 'color-logger';\nimport Npm from './Npm';\nimport Event from './Event';\n\nconst fileSystem = Promise.promisifyAll(fs);\n\n/**\n * This class is usually the main part of the application.\n */\nexport default class PluginManager extends EventEmitter {\n  /**\n   * Create a new instance.\n   *\n   * @param {Object}  [options]               options object\n   * @param {Boolean} [options.debug]         debug flag\n   * @param {String}  [options.context]       context name\n   * @param {String}  [options.configFile]    set the config file path\n   * @param {Boolean} [options.override=true] whether to override matching functions\n   */\n  constructor(options = {}) {\n    log.i('new PluginManager()', options);\n\n    super(options);\n\n    this._debug = options.debug || false;\n    this._override = options.override || true;\n    this._configFile = options.configFile || '.plugged-in.json';\n    this._context = options.context;\n\n    log.debug = options.debug || false;\n  }\n\n  /**\n   * Get the current application context.\n   *\n   * @returns {String} the context name\n   */\n  get context() {\n    return this._context;\n  }\n\n  /**\n   * Determine if running in debug mode.\n   *\n   * @returns {Boolean} true or false\n   */\n  get debug() {\n    return this._debug;\n  }\n\n  /**\n   * Get logger.\n   *\n   * @returns {Object} the logger instance\n   */\n  get log() {\n    return log;\n  }\n\n  /**\n   * Initialize the application.\n   *\n   * Generates config file if it does not exist and loads plugins.\n   *\n   * @param {Object} plugin local event handlers\n   * @param {Object} [npm]  optional Npm instance\n   *\n   * @returns {PluginManager} this plugin\n   */\n  async init(plugin = {}, npm = new Npm({ debug: this._debug })) {\n    log.i('PluginManager.init()');\n\n    let data;\n\n    try {\n      const exists = fileSystem.existsSync(this._configFile);\n\n      if (exists === true) {\n        data = await fileSystem.readFileAsync(this._configFile);\n\n        data = JSON.parse(data);\n\n        await this.addPlugins(data.plugins);\n      } else {\n        log.d('.plugged-in.json does not exists');\n\n        data = await npm.generateConfig(this);\n      }\n\n      if (typeof this._context === 'undefined') {\n        this._context = data.context;\n      }\n    } catch (error) {\n      log.e('PluginManager.init()', error.message);\n    }\n\n    // Add local plugin last so that it can override externals if necessary\n    await this.addPlugins([plugin]);\n\n    this.dispatch('postInit', this);\n\n    return this;\n  }\n\n  /**\n   * Helper method to dispatch events.\n   *\n   * @param {String} eventName the event name\n   * @param {Object} [context] optional event context object\n   *\n   * @returns {Object} the modified data object\n   */\n  async dispatch(eventName, context) {\n    if (typeof eventName === 'undefined') {\n      throw new Error('Event name not provided');\n    }\n\n    if (typeof context === 'undefined') {\n      context = {};\n    }\n\n    const event = new Event({ name: eventName, context });\n\n    log.i(`Dispatching ${event.name}...`);\n\n    this.emit(eventName, event);\n\n    return context;\n  }\n\n  /**\n   * Determines if a handler exists for an event.\n   *\n   * @param {String}          event   the event name\n   * @param {Function|String} handler the function or its name\n   *\n   * @returns {Boolean} true if exists, otherwise false\n   */\n  hasHandler(event, handler) {\n    const listeners = this.listeners(event)\n      .map((listener) => listener.name);\n\n    if (typeof handler === 'function') {\n      return listeners.indexOf(handler.name) !== -1;\n    }\n\n    return listeners.indexOf(handler) !== -1;\n  }\n\n  /**\n   * Determines if an event has any handlers.\n   *\n   * @param {String} event the event name\n   *\n   * @returns {Boolean} true or false\n   */\n  hasHandlers(event) {\n    if (typeof event === 'undefined') {\n      throw new Error('Undefined event name');\n    }\n\n    return this.listeners(event).length > 0;\n  }\n\n  /**\n   * Removes a handler for an event that matches the handler function name.\n   *\n   * @param {String}          event   the event name\n   * @param {Function|String} handler the function or its name\n   *\n   * @returns {PluginManager} this instance\n   */\n  removeHandler(event, handler) {\n    let name = handler;\n\n    if (typeof name === 'function') {\n      name = handler.name;\n    }\n\n    this.listeners(event).forEach((listener) => {\n      if (listener.name === name) {\n        this.removeListener(event, listener);\n      }\n    });\n\n    return this;\n  }\n\n  /**\n   * Add local plugins.\n   *\n   * @param {Object[]} plugins          list of plugins\n   * @param {Object}   plugins.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   */\n  async addPlugins(plugins) {\n    if (Array.isArray(plugins) === false) {\n      throw new Error('Plugins must be an array');\n    }\n\n    await Promise.mapSeries(plugins, async (plugin) => this._processPlugin(plugin));\n\n    return this;\n  }\n\n  /**\n   * Add plugin handlers.\n   *\n   * @param {Object} plugin          the plugin\n   * @param {Object} plugin.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processPlugin(plugin) {\n    try {\n      if (typeof plugin.provides === 'undefined') {\n        return this;\n      }\n\n      const pluginEvents = Object.keys(plugin.provides);\n\n      await Promise.mapSeries(pluginEvents,\n        async (eventName) => this._processEvent(plugin, eventName));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin event.\n   *\n   * @param {Object} plugin    the plugin\n   * @param {String} eventName the event name\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processEvent(plugin, eventName) {\n    try {\n      let funcs = plugin.provides[eventName];\n\n      if (Array.isArray(funcs) !== true) {\n        funcs = [funcs];\n      }\n\n      await Promise.mapSeries(funcs, async (func) =>\n        this._processHandler(plugin, eventName, func));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin handler.\n   *\n   * @param {Object}   plugin    the plugin\n   * @param {String}   eventName the event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processHandler(plugin, eventName, handler) {\n    try {\n      let func = handler;\n\n      if (typeof handler === 'string') {\n        func = await this._getCallback(plugin.name, handler);\n      }\n\n      if (func === null) {\n        return this;\n      }\n\n      this._consolidateHandlers(eventName, func);\n\n      this.on(eventName, func);\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * This removes existing matching handler for an event if necessary.\n   *\n   * @param {String}   eventName event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  _consolidateHandlers(eventName, handler) {\n    if (this.hasHandler(eventName, handler) === true && this._override === true) {\n      this.removeHandler(eventName, handler);\n    }\n\n    return this;\n  }\n\n  /**\n   * Get callback for plugin service.\n   *\n   * @param {Object}   pluginName the plugin\n   * @param {String}   funcName   the name of the event\n   *\n   * @returns {Function} the handler\n   *\n   * @private\n   */\n  async _getCallback(pluginName, funcName) {\n    try {\n      const pg = require(`${pluginName}`); // eslint-disable-line global-require\n\n      return pg[funcName];\n    } catch (error) {\n      log.e(`Unsupported action '${funcName}'`, error);\n    }\n\n    return null;\n  }\n}\n"
+    "content": "import Promise from 'bluebird';\nimport fs from 'fs';\nimport log from 'color-logger';\nimport Npm from './Npm';\nimport Event from './Event';\n\nconst fileSystem = Promise.promisifyAll(fs);\n\n/**\n * This class is usually the main part of the application.\n */\nexport default class PluginManager {\n  /**\n   * Create a new instance.\n   *\n   * @param {Object}  [options]               options object\n   * @param {Boolean} [options.debug]         debug flag\n   * @param {String}  [options.context]       context name\n   * @param {String}  [options.configFile]    set the config file path\n   * @param {Boolean} [options.override=true] whether to override matching functions\n   */\n  constructor(options = {}) {\n    log.i('new PluginManager()', options);\n\n    this._events = {};\n    this._debug = options.debug || false;\n    this._override = options.override || true;\n    this._configFile = options.configFile || '.plugged-in.json';\n    this._defaultMaxHandlers = null;\n    this._context = options.context;\n\n    log.debug = options.debug || false;\n  }\n\n  /**\n   * Get the current application context.\n   *\n   * @returns {String} the context name\n   */\n  get context() {\n    return this._context;\n  }\n\n  /**\n   * Determine if running in debug mode.\n   *\n   * @returns {Boolean} true or false\n   */\n  get debug() {\n    return this._debug;\n  }\n\n  /**\n   * Get logger.\n   *\n   * @returns {Object} the logger instance\n   */\n  get log() {\n    return log;\n  }\n\n  /**\n   * Initialize the application.\n   *\n   * Generates config file if it does not exist and loads plugins.\n   *\n   * @param {Object} plugin local event handlers\n   * @param {Object} [npm]  optional Npm instance\n   *\n   * @returns {PluginManager} this plugin\n   */\n  async init(plugin = {}, npm = new Npm({ debug: this._debug })) {\n    log.i('PluginManager.init()');\n\n    let data;\n\n    try {\n      const exists = fileSystem.existsSync(this._configFile);\n\n      if (exists === true) {\n        data = await fileSystem.readFileAsync(this._configFile);\n\n        data = JSON.parse(data);\n\n        await this.addPlugins(data.plugins);\n      } else {\n        log.d('.plugged-in.json does not exists');\n\n        data = await npm.generateConfig(this);\n      }\n\n      if (typeof this._context === 'undefined') {\n        this._context = data.context;\n      }\n    } catch (error) {\n      log.e('PluginManager.init()', error.message);\n    }\n\n    // Add local plugin last so that it can override externals if necessary\n    await this.addPlugins([plugin]);\n\n    this.dispatch('postInit', this);\n\n    return this;\n  }\n\n  /**\n   * Helper method to dispatch events.\n   *\n   * @param {String} eventName the event name\n   * @param {Object} [context] optional event context object\n   *\n   * @returns {Object} the modified data object\n   */\n  async dispatch(eventName, context) {\n    if (typeof eventName === 'undefined') {\n      throw new Error('Event name not provided');\n    }\n\n    if (typeof context === 'undefined') {\n      context = {};\n    }\n\n    const event = new Event({ name: eventName, context });\n\n    log.i(`Dispatching ${event.name}...`);\n\n    const handlers = this.handlers(event.name);\n\n    await Promise.mapSeries(handlers, async (func) => {\n      console.log('Executing', func.name);\n\n      try {\n        await func(event);\n      } catch (error) {\n        throw error;\n      }\n    });\n\n    return context;\n  }\n\n  /**\n   * Get list of handlers for an event.\n   *\n   * @param {String} eventName the event name\n   *\n   * @returns {Function[]} list of handlers\n   */\n  handlers(eventName) {\n    const result = this._events[eventName];\n\n    if (typeof result === 'undefined') {\n      return [];\n    }\n\n    return result;\n  }\n\n  /**\n   * Adds a new handler to the event list.\n   *\n   * @param {String}   eventName the event name\n   * @param {Function} handler   the callback function\n   *\n   * @returns {Object} this instance\n   */\n  addHandler(eventName, handler) {\n    log.i('addHandler', eventName, handler);\n\n    const handlers = this.handlers(eventName);\n\n    if (handlers.length === 0) {\n      this._events[eventName] = [];\n    }\n\n    if (this._defaultMaxHandlers !== null\n      && handlers.length + 1 > this._defaultMaxHandlers\n    ) {\n      throw new Error(`Exceeded maximum number of handlers for '${eventName}' event`);\n    }\n\n    this._events[eventName].push(handler);\n\n    return this;\n  }\n\n  /**\n   * Get max event handlers.\n   *\n   * @returns {Integer} max number of handlers\n   */\n  getMaxHandlers() {\n    return this._defaultMaxHandlers;\n  }\n\n  /**\n   * Set max number of event handlers.\n   *\n   * @param {Integer} count max number\n   *\n   * @returns {Object} this instance\n   */\n  setMaxHandlers(count) {\n    if (Number.isNaN(count)) {\n      throw new Error(`Count: '${count}' is not a number`);\n    }\n\n    this._defaultMaxHandlers = count;\n\n    return this;\n  }\n\n  /**\n   * Determines if a handler exists for an event.\n   *\n   * @param {String}          event   the event name\n   * @param {Function|String} handler the function or its name\n   *\n   * @returns {Boolean} true if exists, otherwise false\n   */\n  hasHandler(event, handler) {\n    const handlers = this.handlers(event)\n      .map((handle) => handle.name);\n\n    if (typeof handler === 'function') {\n      return handlers.indexOf(handler.name) !== -1;\n    }\n\n    return handlers.indexOf(handler) !== -1;\n  }\n\n  /**\n   * Determines if an event has any handlers.\n   *\n   * @param {String} event the event name\n   *\n   * @returns {Boolean} true or false\n   */\n  hasHandlers(event) {\n    if (typeof event === 'undefined') {\n      throw new Error('Undefined event name');\n    }\n\n    return this.handlers(event).length > 0;\n  }\n\n  /**\n   * Removes a handler for an event that matches the handler function name.\n   *\n   * @param {String}          eventName the event name\n   * @param {Function|String} handler   the function or its name\n   *\n   * @returns {PluginManager} this instance\n   */\n  removeHandler(eventName, handler) {\n    let name = handler;\n\n    if (typeof name === 'function') {\n      name = handler.name;\n    }\n\n    let index = 0;\n\n    this.handlers(eventName).forEach((handle) => {\n      if (handle.name === name) {\n        this._events[eventName].splice([index], 1);\n      }\n\n      index += 1;\n    });\n\n    return this;\n  }\n\n  /**\n   * Deletes all handlers for an event.\n   *\n   * @param {String} eventName the event name to removes\n   *\n   * @returns {Object} this instance\n   */\n  removeAllHandlers(eventName) {\n    this._events[eventName] = [];\n\n    return this;\n  }\n\n  /**\n   * Add local plugins.\n   *\n   * @param {Object[]} plugins          list of plugins\n   * @param {Object}   plugins.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   */\n  async addPlugins(plugins) {\n    if (Array.isArray(plugins) === false) {\n      throw new Error('Plugins must be an array');\n    }\n\n    await Promise.mapSeries(plugins, async (plugin) => this._processPlugin(plugin));\n\n    return this;\n  }\n\n  /**\n   * Add plugin handlers.\n   *\n   * @param {Object} plugin          the plugin\n   * @param {Object} plugin.provides the provides object\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processPlugin(plugin) {\n    try {\n      if (typeof plugin.provides === 'undefined') {\n        return this;\n      }\n\n      const pluginEvents = Object.keys(plugin.provides);\n\n      await Promise.mapSeries(pluginEvents,\n        async (eventName) => this._processEvent(plugin, eventName));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin event.\n   *\n   * @param {Object} plugin    the plugin\n   * @param {String} eventName the event name\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processEvent(plugin, eventName) {\n    try {\n      let funcs = plugin.provides[eventName];\n\n      if (Array.isArray(funcs) !== true) {\n        funcs = [funcs];\n      }\n\n      await Promise.mapSeries(funcs, async (func) =>\n        this._processHandler(plugin, eventName, func));\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * Add plugin handler.\n   *\n   * @param {Object}   plugin    the plugin\n   * @param {String}   eventName the event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  async _processHandler(plugin, eventName, handler) {\n    try {\n      let func = handler;\n\n      if (typeof handler === 'string') {\n        func = await this._getCallback(plugin.name, handler);\n      }\n\n      if (func === null) {\n        return this;\n      }\n\n      this\n        ._consolidateHandlers(eventName, func)\n        .addHandler(eventName, func);\n    } catch (error) {\n      log.e(error.message);\n    }\n\n    return this;\n  }\n\n  /**\n   * This removes existing matching handler for an event if necessary.\n   *\n   * @param {String}   eventName event name\n   * @param {Function} handler   the handler\n   *\n   * @returns {PluginManager} this instance\n   *\n   * @private\n   */\n  _consolidateHandlers(eventName, handler) {\n    if (this.hasHandler(eventName, handler) === true && this._override === true) {\n      this.removeHandler(eventName, handler);\n    }\n\n    return this;\n  }\n\n  /**\n   * Get callback for plugin service.\n   *\n   * @param {Object}   pluginName the plugin\n   * @param {String}   funcName   the name of the event\n   *\n   * @returns {Function} the handler\n   *\n   * @private\n   */\n  async _getCallback(pluginName, funcName) {\n    try {\n      const pg = require(`${pluginName}`); // eslint-disable-line global-require\n\n      return pg[funcName];\n    } catch (error) {\n      log.e(`Unsupported action '${funcName}'`, error);\n    }\n\n    return null;\n  }\n}\n"
   },
   {
     "__docId__": 20,
@@ -548,7 +548,7 @@
     "importPath": "plugged-in/src/PluginManager.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 8,
+    "lineNumber": 7,
     "undocument": true,
     "type": {
       "types": [
@@ -569,11 +569,8 @@
     "importPath": "plugged-in/src/PluginManager.js",
     "importStyle": "PluginManager",
     "description": "This class is usually the main part of the application.",
-    "lineNumber": 13,
-    "interface": false,
-    "extends": [
-      "events~EventEmitter"
-    ]
+    "lineNumber": 12,
+    "interface": false
   },
   {
     "__docId__": 22,
@@ -585,7 +582,7 @@
     "longname": "src/PluginManager.js~PluginManager#constructor",
     "access": null,
     "description": "Create a new instance.",
-    "lineNumber": 23,
+    "lineNumber": 22,
     "params": [
       {
         "nullable": null,
@@ -647,12 +644,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_debug",
+    "name": "_events",
     "memberof": "src/PluginManager.js~PluginManager",
-    "longname": "src/PluginManager.js~PluginManager#_debug",
+    "longname": "src/PluginManager.js~PluginManager#_events",
     "access": null,
     "description": null,
-    "lineNumber": 28,
+    "lineNumber": 25,
     "undocument": true,
     "type": {
       "types": [
@@ -665,12 +662,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_override",
+    "name": "_debug",
     "memberof": "src/PluginManager.js~PluginManager",
-    "longname": "src/PluginManager.js~PluginManager#_override",
+    "longname": "src/PluginManager.js~PluginManager#_debug",
     "access": null,
     "description": null,
-    "lineNumber": 29,
+    "lineNumber": 26,
     "undocument": true,
     "type": {
       "types": [
@@ -683,12 +680,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_configFile",
+    "name": "_override",
     "memberof": "src/PluginManager.js~PluginManager",
-    "longname": "src/PluginManager.js~PluginManager#_configFile",
+    "longname": "src/PluginManager.js~PluginManager#_override",
     "access": null,
     "description": null,
-    "lineNumber": 30,
+    "lineNumber": 27,
     "undocument": true,
     "type": {
       "types": [
@@ -701,12 +698,12 @@
     "kind": "member",
     "static": false,
     "variation": null,
-    "name": "_context",
+    "name": "_configFile",
     "memberof": "src/PluginManager.js~PluginManager",
-    "longname": "src/PluginManager.js~PluginManager#_context",
+    "longname": "src/PluginManager.js~PluginManager#_configFile",
     "access": null,
     "description": null,
-    "lineNumber": 31,
+    "lineNumber": 28,
     "undocument": true,
     "type": {
       "types": [
@@ -716,6 +713,42 @@
   },
   {
     "__docId__": 27,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_defaultMaxHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_defaultMaxHandlers",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 28,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_context",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_context",
+    "access": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 29,
     "kind": "get",
     "static": false,
     "variation": null,
@@ -724,7 +757,7 @@
     "longname": "src/PluginManager.js~PluginManager#context",
     "access": null,
     "description": "Get the current application context.",
-    "lineNumber": 41,
+    "lineNumber": 40,
     "unknown": [
       {
         "tagName": "@returns",
@@ -747,7 +780,7 @@
     "generator": false
   },
   {
-    "__docId__": 28,
+    "__docId__": 30,
     "kind": "get",
     "static": false,
     "variation": null,
@@ -756,7 +789,7 @@
     "longname": "src/PluginManager.js~PluginManager#debug",
     "access": null,
     "description": "Determine if running in debug mode.",
-    "lineNumber": 50,
+    "lineNumber": 49,
     "unknown": [
       {
         "tagName": "@returns",
@@ -779,7 +812,7 @@
     "generator": false
   },
   {
-    "__docId__": 29,
+    "__docId__": 31,
     "kind": "get",
     "static": false,
     "variation": null,
@@ -788,7 +821,7 @@
     "longname": "src/PluginManager.js~PluginManager#log",
     "access": null,
     "description": "Get logger.",
-    "lineNumber": 59,
+    "lineNumber": 58,
     "unknown": [
       {
         "tagName": "@returns",
@@ -811,7 +844,7 @@
     "generator": false
   },
   {
-    "__docId__": 30,
+    "__docId__": 32,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -820,7 +853,7 @@
     "longname": "src/PluginManager.js~PluginManager#init",
     "access": null,
     "description": "Initialize the application.\n\nGenerates config file if it does not exist and loads plugins.",
-    "lineNumber": 73,
+    "lineNumber": 72,
     "unknown": [
       {
         "tagName": "@returns",
@@ -860,7 +893,7 @@
     "generator": false
   },
   {
-    "__docId__": 31,
+    "__docId__": 33,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -869,7 +902,7 @@
     "longname": "src/PluginManager.js~PluginManager#_context",
     "access": null,
     "description": null,
-    "lineNumber": 94,
+    "lineNumber": 93,
     "undocument": true,
     "type": {
       "types": [
@@ -878,7 +911,7 @@
     }
   },
   {
-    "__docId__": 32,
+    "__docId__": 34,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -887,7 +920,7 @@
     "longname": "src/PluginManager.js~PluginManager#dispatch",
     "access": null,
     "description": "Helper method to dispatch events.",
-    "lineNumber": 116,
+    "lineNumber": 115,
     "unknown": [
       {
         "tagName": "@returns",
@@ -927,7 +960,180 @@
     "generator": false
   },
   {
-    "__docId__": 33,
+    "__docId__": 35,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "handlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#handlers",
+    "access": null,
+    "description": "Get list of handlers for an event.",
+    "lineNumber": 150,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Function[]} list of handlers"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Function[]"
+      ],
+      "spread": false,
+      "description": "list of handlers"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 36,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "addHandler",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#addHandler",
+    "access": null,
+    "description": "Adds a new handler to the event list.",
+    "lineNumber": 168,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "Function"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "handler",
+        "description": "the callback function"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 37,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getMaxHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#getMaxHandlers",
+    "access": null,
+    "description": "Get max event handlers.",
+    "lineNumber": 193,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Integer} max number of handlers"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Integer"
+      ],
+      "spread": false,
+      "description": "max number of handlers"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 38,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "setMaxHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#setMaxHandlers",
+    "access": null,
+    "description": "Set max number of event handlers.",
+    "lineNumber": 204,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Integer"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "count",
+        "description": "max number"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 39,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "_defaultMaxHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#_defaultMaxHandlers",
+    "access": null,
+    "description": null,
+    "lineNumber": 209,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 40,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -936,7 +1142,7 @@
     "longname": "src/PluginManager.js~PluginManager#hasHandler",
     "access": null,
     "description": "Determines if a handler exists for an event.",
-    "lineNumber": 142,
+    "lineNumber": 222,
     "unknown": [
       {
         "tagName": "@returns",
@@ -977,7 +1183,7 @@
     "generator": false
   },
   {
-    "__docId__": 34,
+    "__docId__": 41,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -986,7 +1192,7 @@
     "longname": "src/PluginManager.js~PluginManager#hasHandlers",
     "access": null,
     "description": "Determines if an event has any handlers.",
-    "lineNumber": 160,
+    "lineNumber": 240,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1016,7 +1222,7 @@
     "generator": false
   },
   {
-    "__docId__": 35,
+    "__docId__": 42,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1025,7 +1231,7 @@
     "longname": "src/PluginManager.js~PluginManager#removeHandler",
     "access": null,
     "description": "Removes a handler for an event that matches the handler function name.",
-    "lineNumber": 176,
+    "lineNumber": 256,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1040,7 +1246,7 @@
         ],
         "spread": false,
         "optional": false,
-        "name": "event",
+        "name": "eventName",
         "description": "the event name"
       },
       {
@@ -1066,7 +1272,46 @@
     "generator": false
   },
   {
-    "__docId__": 36,
+    "__docId__": 43,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeAllHandlers",
+    "memberof": "src/PluginManager.js~PluginManager",
+    "longname": "src/PluginManager.js~PluginManager#removeAllHandlers",
+    "access": null,
+    "description": "Deletes all handlers for an event.",
+    "lineNumber": 283,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{Object} this instance"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "eventName",
+        "description": "the event name to removes"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "Object"
+      ],
+      "spread": false,
+      "description": "this instance"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 44,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1075,7 +1320,7 @@
     "longname": "src/PluginManager.js~PluginManager#addPlugins",
     "access": null,
     "description": "Add local plugins.",
-    "lineNumber": 200,
+    "lineNumber": 297,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1115,7 +1360,7 @@
     "generator": false
   },
   {
-    "__docId__": 37,
+    "__docId__": 45,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1124,7 +1369,7 @@
     "longname": "src/PluginManager.js~PluginManager#_processPlugin",
     "access": "private",
     "description": "Add plugin handlers.",
-    "lineNumber": 220,
+    "lineNumber": 317,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1164,7 +1409,7 @@
     "generator": false
   },
   {
-    "__docId__": 38,
+    "__docId__": 46,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1173,7 +1418,7 @@
     "longname": "src/PluginManager.js~PluginManager#_processEvent",
     "access": "private",
     "description": "Add plugin event.",
-    "lineNumber": 247,
+    "lineNumber": 344,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1213,7 +1458,7 @@
     "generator": false
   },
   {
-    "__docId__": 39,
+    "__docId__": 47,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1222,7 +1467,7 @@
     "longname": "src/PluginManager.js~PluginManager#_processHandler",
     "access": "private",
     "description": "Add plugin handler.",
-    "lineNumber": 275,
+    "lineNumber": 372,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1272,7 +1517,7 @@
     "generator": false
   },
   {
-    "__docId__": 40,
+    "__docId__": 48,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1281,7 +1526,7 @@
     "longname": "src/PluginManager.js~PluginManager#_consolidateHandlers",
     "access": "private",
     "description": "This removes existing matching handler for an event if necessary.",
-    "lineNumber": 307,
+    "lineNumber": 404,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1321,7 +1566,7 @@
     "generator": false
   },
   {
-    "__docId__": 41,
+    "__docId__": 49,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -1330,7 +1575,7 @@
     "longname": "src/PluginManager.js~PluginManager#_getCallback",
     "access": "private",
     "description": "Get callback for plugin service.",
-    "lineNumber": 325,
+    "lineNumber": 422,
     "unknown": [
       {
         "tagName": "@returns",
@@ -1370,7 +1615,7 @@
     "generator": false
   },
   {
-    "__docId__": 42,
+    "__docId__": 50,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -1383,7 +1628,7 @@
     "content": "/**\n * The validation error class.\n *\n * Thrown by the SchemaValidator when an invalid object is passed into the `validate()` method.\n */\nexport default class ValidationError extends Error {\n  /**\n   * Create a new instance.\n   *\n   * @param {String} message the error message\n   */\n  constructor(message) {\n    super(message);\n\n    this.name = 'ValidationError';\n  }\n\n  /**\n   * @returns {String} the error name\n   */\n  get name() {\n    return this.name;\n  }\n}\n"
   },
   {
-    "__docId__": 43,
+    "__docId__": 51,
     "kind": "class",
     "static": true,
     "variation": null,
@@ -1402,7 +1647,7 @@
     ]
   },
   {
-    "__docId__": 44,
+    "__docId__": 52,
     "kind": "constructor",
     "static": false,
     "variation": null,
@@ -1427,7 +1672,7 @@
     "generator": false
   },
   {
-    "__docId__": 45,
+    "__docId__": 53,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -1445,7 +1690,7 @@
     }
   },
   {
-    "__docId__": 46,
+    "__docId__": 54,
     "kind": "get",
     "static": false,
     "variation": null,
@@ -1477,7 +1722,7 @@
     "generator": false
   },
   {
-    "__docId__": 47,
+    "__docId__": 55,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -1490,7 +1735,7 @@
     "content": "import PluginManager from './PluginManager';\nimport Event from './Event';\n\nexport {\n  PluginManager,\n  Event,\n};\n"
   },
   {
-    "__docId__": 48,
+    "__docId__": 56,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -1503,7 +1748,7 @@
     "content": "import Ajv from 'ajv';\nimport ValidationError from './../errors/ValidationError';\n\nconst ajv = new Ajv({ allErrors: true });\n\najv.addSchema(require('../../resources/schema/configuration+v1.json'));\n\nexport default {\n  ajv,\n  /**\n   * Validate schema.\n   *\n   * @param {String} schema schema id\n   * @param {Object} body   the object to validate\n   *\n   * @returns {Boolean} True on success and throws ValidationError on false\n   *\n   * @throws ValidationError\n   */\n  async validate(schema, body) {\n    const result = await ajv.validate(schema, body);\n\n    if (result !== true) {\n      throw new ValidationError(ajv.errorsText());\n    }\n\n    return true;\n  },\n};\n"
   },
   {
-    "__docId__": 49,
+    "__docId__": 57,
     "kind": "variable",
     "static": true,
     "variation": null,
@@ -1524,7 +1769,7 @@
     }
   },
   {
-    "__docId__": 51,
+    "__docId__": 59,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1537,7 +1782,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 60,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1550,7 +1795,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 53,
+    "__docId__": 61,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1563,7 +1808,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 54,
+    "__docId__": 62,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1576,7 +1821,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 55,
+    "__docId__": 63,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1589,7 +1834,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 56,
+    "__docId__": 64,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1602,7 +1847,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 57,
+    "__docId__": 65,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1615,7 +1860,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 58,
+    "__docId__": 66,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1628,7 +1873,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 59,
+    "__docId__": 67,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1641,7 +1886,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 60,
+    "__docId__": 68,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1654,7 +1899,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 61,
+    "__docId__": 69,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1667,7 +1912,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 62,
+    "__docId__": 70,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1680,7 +1925,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 63,
+    "__docId__": 71,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1693,7 +1938,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 64,
+    "__docId__": 72,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1706,7 +1951,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 65,
+    "__docId__": 73,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1719,7 +1964,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 66,
+    "__docId__": 74,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1732,7 +1977,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 67,
+    "__docId__": 75,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1745,7 +1990,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 68,
+    "__docId__": 76,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1758,7 +2003,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 69,
+    "__docId__": 77,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1771,7 +2016,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 70,
+    "__docId__": 78,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1784,7 +2029,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 71,
+    "__docId__": 79,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1797,7 +2042,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 72,
+    "__docId__": 80,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1810,7 +2055,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 73,
+    "__docId__": 81,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1823,7 +2068,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 74,
+    "__docId__": 82,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1836,7 +2081,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 75,
+    "__docId__": 83,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1849,7 +2094,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 76,
+    "__docId__": 84,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1862,7 +2107,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 77,
+    "__docId__": 85,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1875,7 +2120,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 78,
+    "__docId__": 86,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1888,7 +2133,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 87,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1901,7 +2146,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 80,
+    "__docId__": 88,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1914,7 +2159,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 81,
+    "__docId__": 89,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1927,7 +2172,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 82,
+    "__docId__": 90,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1940,7 +2185,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 83,
+    "__docId__": 91,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1953,7 +2198,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 84,
+    "__docId__": 92,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1966,7 +2211,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 93,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1979,7 +2224,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 86,
+    "__docId__": 94,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1992,7 +2237,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 95,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2005,7 +2250,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 88,
+    "__docId__": 96,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2018,7 +2263,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 89,
+    "__docId__": 97,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2031,7 +2276,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 90,
+    "__docId__": 98,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2044,7 +2289,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 91,
+    "__docId__": 99,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2057,7 +2302,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 92,
+    "__docId__": 100,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2070,7 +2315,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 93,
+    "__docId__": 101,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2083,7 +2328,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 94,
+    "__docId__": 102,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2096,7 +2341,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 95,
+    "__docId__": 103,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2109,7 +2354,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 96,
+    "__docId__": 104,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2122,7 +2367,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 97,
+    "__docId__": 105,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2135,7 +2380,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 99,
+    "__docId__": 107,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2148,7 +2393,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 100,
+    "__docId__": 108,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2161,7 +2406,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 101,
+    "__docId__": 109,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2174,7 +2419,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 102,
+    "__docId__": 110,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2187,7 +2432,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 103,
+    "__docId__": 111,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2200,7 +2445,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 104,
+    "__docId__": 112,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2213,7 +2458,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 105,
+    "__docId__": 113,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2226,7 +2471,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 106,
+    "__docId__": 114,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -2239,7 +2484,7 @@
     "builtinExternal": true
   },
   {
-    "__docId__": 107,
+    "__docId__": 115,
     "kind": "testFile",
     "static": true,
     "variation": null,
@@ -2249,10 +2494,10 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "import chai, { expect } from 'chai';\nimport Event from './../src/Event';\n\nchai.use(require('dirty-chai'));\n\ndescribe('Event', () => {\n  it('created successfully', () => {\n    const name = 'my-event';\n    const context = 'my data';\n\n    const event = new Event({ name, context });\n\n    expect(event.name).to.equal(name);\n    expect(event.context).to.equal(context);\n  });\n});\n"
+    "content": "import chai, { expect } from 'chai';\nimport Event from './../src/Event';\n\nchai.use(require('dirty-chai'));\n\ndescribe('Event', () => {\n  it('created successfully', () => {\n    const name = 'my-event';\n    const context = 'my data';\n\n    const event = new Event({ name, context });\n\n    expect(event.name).to.equal(name);\n    expect(event.context).to.equal(context);\n  });\n\n  it('allows to set context', () => {\n    const event = new Event({ name: 'test' });\n\n    event.context = 'my-context';\n\n    expect(event.context).to.equal('my-context');\n  });\n});\n"
   },
   {
-    "__docId__": 108,
+    "__docId__": 116,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
@@ -2266,7 +2511,7 @@
     "lineNumber": 6
   },
   {
-    "__docId__": 109,
+    "__docId__": 117,
     "kind": "testIt",
     "static": true,
     "variation": null,
@@ -2280,7 +2525,21 @@
     "lineNumber": 7
   },
   {
-    "__docId__": 110,
+    "__docId__": 118,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it2",
+    "testId": 2,
+    "memberof": "tests/Event.test.js~describe0",
+    "testDepth": 1,
+    "longname": "tests/Event.test.js~describe0.it2",
+    "access": null,
+    "description": "allows to set context",
+    "lineNumber": 17
+  },
+  {
+    "__docId__": 119,
     "kind": "testFile",
     "static": true,
     "variation": null,
@@ -2290,136 +2549,136 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "import Promise from 'bluebird';\nimport fs from 'fs-extra';\nimport chai, { expect } from 'chai';\nimport Npm from './../src/Npm';\n\nchai.use(require('dirty-chai'));\n\nconst copyAsync = Promise.promisify(fs.copy);\nconst removeAsync = Promise.promisify(fs.remove);\nconst readJson = Promise.promisify(fs.readJson);\n\ndescribe('Npm', () => {\n  let npm;\n\n  beforeEach(() => {\n    npm = new Npm({ debug: true });\n  });\n\n  it('gets created successfully', () => {\n    expect(npm instanceof Npm).to.equal(true);\n    expect(npm._debug).to.equal(true);\n  });\n\n  describe('findPackage', () => {\n    it('finds a package.json successfully', async () => {\n      const pkg = await Npm.findPackage(`${__dirname}/../`);\n\n      expect(pkg.name).to.equal('plugged-in');\n    });\n\n    it('returns null if package not found', async () => {\n      const pkg = await Npm.findPackage(__dirname);\n\n      expect(pkg).to.equal(null);\n    });\n  });\n\n  describe('executeShell', () => {\n    it('executes ls command successfully', async () => {\n      const result = await npm.executeShell('ls');\n\n      const files = [];\n\n      result\n        .split('\\n')\n        .forEach((dir) => {\n          if (dir.trim() !== '') {\n            files.push(dir);\n          }\n        });\n\n      expect(files.indexOf('src')).to.not.equal(-1);\n      expect(files.indexOf('tests')).to.not.equal(-1);\n      expect(files.indexOf('node_modules')).to.not.equal(-1);\n    });\n  });\n\n  describe('getModules', () => {\n    const modulesSdkPath = `${__dirname}/../node_modules/aws-sdk`;\n\n    afterEach(async () => {\n      await removeAsync(modulesSdkPath);\n    });\n\n    it('returns empty list if `extraneous` modules are installed', async () => {\n      const sdkpath = `${__dirname}/fixtures/packages/aws-sdk`;\n\n      await copyAsync(sdkpath, modulesSdkPath);\n\n      const modules = await npm.getModules();\n\n      expect(modules.length).to.equal(0);\n    }).timeout(10000);\n\n    it('gets list of installed modules successfully', async () => {\n      const modules = await npm.getModules();\n\n      expect(modules.length > 0).to.equal(true);\n      expect(typeof modules[0]).to.equal('string');\n    }).timeout(10000);\n  });\n\n  describe('generateConfig', async () => {\n    const configPath = `${__dirname}/out/config.json`;\n\n    afterEach(async () => {\n      await removeAsync(configPath);\n    });\n\n    it('generates a new .plugged-in.json file successfully', async () => {\n      const manager = {\n        addPlugins: () => manager,\n        emit: () => manager,\n      };\n\n      await npm.generateConfig(manager, configPath);\n\n      const conf = await readJson(configPath);\n\n      expect(conf.context).to.equal('plugged-in');\n      expect(conf.plugins.length).to.equal(1);\n    }).timeout(20000);\n  });\n});\n"
+    "content": "import Promise from 'bluebird';\nimport fs from 'fs-extra';\nimport chai, { expect } from 'chai';\nimport Npm from './../src/Npm';\n\nchai.use(require('dirty-chai'));\n\nconst copyAsync = Promise.promisify(fs.copy);\nconst removeAsync = Promise.promisify(fs.remove);\nconst readJson = Promise.promisify(fs.readJson);\n\ndescribe('Npm', () => {\n  let npm;\n\n  beforeEach(() => {\n    npm = new Npm({ debug: true });\n  });\n\n  it('gets created successfully', () => {\n    expect(npm instanceof Npm).to.equal(true);\n    expect(npm._debug).to.equal(true);\n  });\n\n  describe('findPackage', () => {\n    it('finds a package.json successfully', async () => {\n      const pkg = await Npm.findPackage(`${__dirname}/../`);\n\n      expect(pkg.name).to.equal('plugged-in');\n    });\n\n    it('returns null if package not found', async () => {\n      const pkg = await Npm.findPackage(__dirname);\n\n      expect(pkg).to.equal(null);\n    });\n  });\n\n  describe('executeShell', () => {\n    it('executes ls command successfully', async () => {\n      const result = await npm.executeShell('ls');\n\n      const files = [];\n\n      result\n        .split('\\n')\n        .forEach((dir) => {\n          if (dir.trim() !== '') {\n            files.push(dir);\n          }\n        });\n\n      expect(files.indexOf('src')).to.not.equal(-1);\n      expect(files.indexOf('tests')).to.not.equal(-1);\n      expect(files.indexOf('node_modules')).to.not.equal(-1);\n    });\n  });\n\n  describe('getModules', () => {\n    const modulesSdkPath = `${__dirname}/../node_modules/aws-sdk`;\n\n    afterEach(async () => {\n      await removeAsync(modulesSdkPath);\n    });\n\n    it('returns empty list if `extraneous` modules are installed', async () => {\n      const sdkpath = `${__dirname}/fixtures/packages/aws-sdk`;\n\n      await copyAsync(sdkpath, modulesSdkPath);\n\n      const modules = await npm.getModules();\n\n      expect(modules.length).to.equal(0);\n    }).timeout(10000);\n\n    it('gets list of installed modules successfully', async () => {\n      const modules = await npm.getModules();\n\n      expect(modules.length > 0).to.equal(true);\n      expect(typeof modules[0]).to.equal('string');\n    }).timeout(10000);\n  });\n\n  describe('generateConfig', async () => {\n    const configPath = `${__dirname}/out/config.json`;\n\n    afterEach(async () => {\n      await removeAsync(configPath);\n    });\n\n    it('generates a new .plugged-in.json file successfully', async () => {\n      const manager = {\n        addPlugins: () => manager,\n        emit: () => manager,\n      };\n\n      await npm.generateConfig(manager, configPath);\n\n      const conf = await readJson(configPath);\n\n      console.log('conf', conf);\n\n      expect(conf.context).to.equal('plugged-in');\n      expect(conf.plugins.length).to.equal(1);\n    }).timeout(20000);\n  });\n});\n"
   },
   {
-    "__docId__": 111,
+    "__docId__": 120,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe2",
-    "testId": 2,
+    "name": "describe3",
+    "testId": 3,
     "memberof": "tests/Npm.test.js",
     "testDepth": 0,
-    "longname": "tests/Npm.test.js~describe2",
+    "longname": "tests/Npm.test.js~describe3",
     "access": null,
     "description": "Npm",
     "lineNumber": 12
   },
   {
-    "__docId__": 112,
+    "__docId__": 121,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it3",
-    "testId": 3,
-    "memberof": "tests/Npm.test.js~describe2",
+    "name": "it4",
+    "testId": 4,
+    "memberof": "tests/Npm.test.js~describe3",
     "testDepth": 1,
-    "longname": "tests/Npm.test.js~describe2.it3",
+    "longname": "tests/Npm.test.js~describe3.it4",
     "access": null,
     "description": "gets created successfully",
     "lineNumber": 19
   },
   {
-    "__docId__": 113,
+    "__docId__": 122,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe4",
-    "testId": 4,
-    "memberof": "tests/Npm.test.js~describe2",
+    "name": "describe5",
+    "testId": 5,
+    "memberof": "tests/Npm.test.js~describe3",
     "testDepth": 1,
-    "longname": "tests/Npm.test.js~describe2.describe4",
+    "longname": "tests/Npm.test.js~describe3.describe5",
     "access": null,
     "description": "findPackage",
     "lineNumber": 24
   },
   {
-    "__docId__": 114,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it5",
-    "testId": 5,
-    "memberof": "tests/Npm.test.js~describe2.describe4",
-    "testDepth": 2,
-    "longname": "tests/Npm.test.js~describe2.describe4.it5",
-    "access": null,
-    "description": "finds a package.json successfully",
-    "lineNumber": 25
-  },
-  {
-    "__docId__": 115,
+    "__docId__": 123,
     "kind": "testIt",
     "static": true,
     "variation": null,
     "name": "it6",
     "testId": 6,
-    "memberof": "tests/Npm.test.js~describe2.describe4",
+    "memberof": "tests/Npm.test.js~describe3.describe5",
     "testDepth": 2,
-    "longname": "tests/Npm.test.js~describe2.describe4.it6",
+    "longname": "tests/Npm.test.js~describe3.describe5.it6",
+    "access": null,
+    "description": "finds a package.json successfully",
+    "lineNumber": 25
+  },
+  {
+    "__docId__": 124,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it7",
+    "testId": 7,
+    "memberof": "tests/Npm.test.js~describe3.describe5",
+    "testDepth": 2,
+    "longname": "tests/Npm.test.js~describe3.describe5.it7",
     "access": null,
     "description": "returns null if package not found",
     "lineNumber": 31
   },
   {
-    "__docId__": 116,
+    "__docId__": 125,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe7",
-    "testId": 7,
-    "memberof": "tests/Npm.test.js~describe2",
+    "name": "describe8",
+    "testId": 8,
+    "memberof": "tests/Npm.test.js~describe3",
     "testDepth": 1,
-    "longname": "tests/Npm.test.js~describe2.describe7",
+    "longname": "tests/Npm.test.js~describe3.describe8",
     "access": null,
     "description": "executeShell",
     "lineNumber": 38
   },
   {
-    "__docId__": 117,
+    "__docId__": 126,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it8",
-    "testId": 8,
-    "memberof": "tests/Npm.test.js~describe2.describe7",
+    "name": "it9",
+    "testId": 9,
+    "memberof": "tests/Npm.test.js~describe3.describe8",
     "testDepth": 2,
-    "longname": "tests/Npm.test.js~describe2.describe7.it8",
+    "longname": "tests/Npm.test.js~describe3.describe8.it9",
     "access": null,
     "description": "executes ls command successfully",
     "lineNumber": 39
   },
   {
-    "__docId__": 118,
-    "kind": "testDescribe",
-    "static": true,
-    "variation": null,
-    "name": "describe9",
-    "testId": 9,
-    "memberof": "tests/Npm.test.js~describe2",
-    "testDepth": 1,
-    "longname": "tests/Npm.test.js~describe2.describe9",
-    "access": null,
-    "description": "getModules",
-    "lineNumber": 58
-  },
-  {
-    "__docId__": 119,
+    "__docId__": 127,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
     "name": "describe10",
     "testId": 10,
-    "memberof": "tests/Npm.test.js~describe2",
+    "memberof": "tests/Npm.test.js~describe3",
     "testDepth": 1,
-    "longname": "tests/Npm.test.js~describe2.describe10",
+    "longname": "tests/Npm.test.js~describe3.describe10",
+    "access": null,
+    "description": "getModules",
+    "lineNumber": 58
+  },
+  {
+    "__docId__": 128,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe11",
+    "testId": 11,
+    "memberof": "tests/Npm.test.js~describe3",
+    "testDepth": 1,
+    "longname": "tests/Npm.test.js~describe3.describe11",
     "access": null,
     "description": "generateConfig",
     "lineNumber": 83
   },
   {
-    "__docId__": 120,
+    "__docId__": 129,
     "kind": "testFile",
     "static": true,
     "variation": null,
@@ -2429,220 +2688,318 @@
     "access": null,
     "description": null,
     "lineNumber": 1,
-    "content": "import Moment from 'moment';\nimport chai, { expect } from 'chai';\nimport PluginManager from './../src/PluginManager';\nimport Event from './../src/Event';\n\nchai.use(require('dirty-chai'));\n\ndescribe('PluginManager', () => {\n  let manager;\n  let npm;\n\n  const options = {\n    context: 'test-context',\n    debug: false,\n  };\n\n  beforeEach(() => {\n    function onError() { }\n    function setInitialisedAt() { }\n    function setDefaultMaxHandlers() { }\n    function cleanUp() { manager._events = {}; }\n\n    manager = new PluginManager(options);\n    npm = {\n      generateConfig: (mgr) => {\n        mgr._events = {\n          error: onError,\n          postInit: [setDefaultMaxHandlers, setInitialisedAt],\n          exit: cleanUp,\n        };\n\n        return mgr;\n      },\n    };\n  });\n\n  it('gets created successfully', () => {\n    expect(manager instanceof PluginManager).to.equal(true);\n    expect(manager.context).to.equal(options.context);\n    expect(manager.debug).to.equal(options.debug);\n  });\n\n  it('has logger', () => {\n    expect(typeof manager.log._debug === 'boolean').to.equal(true);\n  });\n\n  describe('init', () => {\n    it('gets initialised successfully', async () => {\n      const result = await manager.init({}, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.error).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n    }).timeout(10000);\n\n    it('init with local event handlers', async () => {\n      const onGenerateConfig = (event) => {\n        event.context.createdAt = new Moment();\n      };\n\n      const plugin = {\n        provides: {\n          generateConfig: onGenerateConfig,\n        },\n      };\n\n      const result = await manager.init(plugin, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.generateConfig).to.equal('function');\n      expect(typeof result._events.error).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n      expect(typeof result._events.exit).to.equal('function');\n    });\n\n    it('removes listeners on exit', async () => {\n      const result = await manager.init({}, npm);\n\n      const event = new Event({ name: 'exit', context: manager });\n\n      manager.emit('exit', event);\n\n      expect(result).to.deep.equal(manager);\n      expect(Object.keys(result._events).length).to.equal(0);\n    });\n\n    it('local event handler overrides external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxListeners(10);\n        }\n      };\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.listeners('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(1);\n      expect(manager._maxListeners).to.equal(10);\n    });\n\n    it('local event handler adds to external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxListeners(20);\n        }\n      };\n\n      manager._override = false;\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.listeners('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(2);\n      expect(manager._maxListeners).to.equal(20);\n    });\n  });\n\n  describe('hasHandlers', () => {\n    it('returns true if it has at least one handler for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('postInit')).to.equal(true);\n    });\n\n    it('returns false if it does not have any handlers for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('preInit')).to.equal(false);\n    });\n\n    it('throw error if hasHandlers() not passed an event name', async () => {\n      await manager.init({}, npm);\n\n      try {\n        manager.hasHandlers();\n      } catch (error) {\n        expect(error.message).to.equal('Undefined event name');\n      }\n    });\n  });\n\n  describe('dispatch', () => {\n    it('throws error if event name is not provided', async () => {\n      try {\n        await manager.init({}, npm);\n\n        await manager.dispatch();\n      } catch (error) {\n        expect(error.message).to.equal('Event name not provided');\n      }\n    });\n\n    it('dispatch event without context object should work', async () => {\n      const config = { debug: true, start: 0 };\n\n      const getConfig = (event) => {\n        event.context.config = config;\n      };\n\n      const plugin = {\n        provides: {\n          preExec: getConfig,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const result = await manager.dispatch('preExec');\n\n      expect(result.config).to.deep.equal(config);\n    });\n  });\n});\n"
-  },
-  {
-    "__docId__": 121,
-    "kind": "testDescribe",
-    "static": true,
-    "variation": null,
-    "name": "describe11",
-    "testId": 11,
-    "memberof": "tests/PluginManager.test.js",
-    "testDepth": 0,
-    "longname": "tests/PluginManager.test.js~describe11",
-    "access": null,
-    "description": "PluginManager",
-    "lineNumber": 8
-  },
-  {
-    "__docId__": 122,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it12",
-    "testId": 12,
-    "memberof": "tests/PluginManager.test.js~describe11",
-    "testDepth": 1,
-    "longname": "tests/PluginManager.test.js~describe11.it12",
-    "access": null,
-    "description": "gets created successfully",
-    "lineNumber": 37
-  },
-  {
-    "__docId__": 123,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it13",
-    "testId": 13,
-    "memberof": "tests/PluginManager.test.js~describe11",
-    "testDepth": 1,
-    "longname": "tests/PluginManager.test.js~describe11.it13",
-    "access": null,
-    "description": "has logger",
-    "lineNumber": 43
-  },
-  {
-    "__docId__": 124,
-    "kind": "testDescribe",
-    "static": true,
-    "variation": null,
-    "name": "describe14",
-    "testId": 14,
-    "memberof": "tests/PluginManager.test.js~describe11",
-    "testDepth": 1,
-    "longname": "tests/PluginManager.test.js~describe11.describe14",
-    "access": null,
-    "description": "init",
-    "lineNumber": 47
-  },
-  {
-    "__docId__": 125,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it15",
-    "testId": 15,
-    "memberof": "tests/PluginManager.test.js~describe11.describe14",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe14.it15",
-    "access": null,
-    "description": "init with local event handlers",
-    "lineNumber": 57
-  },
-  {
-    "__docId__": 126,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it16",
-    "testId": 16,
-    "memberof": "tests/PluginManager.test.js~describe11.describe14",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe14.it16",
-    "access": null,
-    "description": "removes listeners on exit",
-    "lineNumber": 78
-  },
-  {
-    "__docId__": 127,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it17",
-    "testId": 17,
-    "memberof": "tests/PluginManager.test.js~describe11.describe14",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe14.it17",
-    "access": null,
-    "description": "local event handler overrides external",
-    "lineNumber": 89
-  },
-  {
-    "__docId__": 128,
-    "kind": "testIt",
-    "static": true,
-    "variation": null,
-    "name": "it18",
-    "testId": 18,
-    "memberof": "tests/PluginManager.test.js~describe11.describe14",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe14.it18",
-    "access": null,
-    "description": "local event handler adds to external",
-    "lineNumber": 114
-  },
-  {
-    "__docId__": 129,
-    "kind": "testDescribe",
-    "static": true,
-    "variation": null,
-    "name": "describe19",
-    "testId": 19,
-    "memberof": "tests/PluginManager.test.js~describe11",
-    "testDepth": 1,
-    "longname": "tests/PluginManager.test.js~describe11.describe19",
-    "access": null,
-    "description": "hasHandlers",
-    "lineNumber": 142
+    "content": "import Moment from 'moment';\nimport chai, { expect } from 'chai';\nimport PluginManager from './../src/PluginManager';\n\nchai.use(require('dirty-chai'));\n\ndescribe('PluginManager', () => {\n  let manager;\n  let npm;\n\n  const options = {\n    context: 'test-context',\n    debug: true,\n  };\n\n  beforeEach(() => {\n    function onError() { }\n    function setInitialisedAt() { }\n    function setDefaultMaxHandlers() { }\n    function cleanUp(event) { event.context._events = {}; }\n\n    manager = new PluginManager(options);\n    npm = {\n      generateConfig: (mgr) => {\n        mgr._events = {\n          error: [onError],\n          postInit: [setDefaultMaxHandlers, setInitialisedAt],\n          exit: [cleanUp],\n        };\n\n        return mgr;\n      },\n    };\n  });\n\n  it('gets created successfully', () => {\n    expect(manager instanceof PluginManager).to.equal(true);\n    expect(manager.context).to.equal(options.context);\n    expect(manager.debug).to.equal(options.debug);\n  });\n\n  it('has logger', () => {\n    expect(typeof manager.log._debug === 'boolean').to.equal(true);\n  });\n\n  describe('init', () => {\n    it('gets initialised successfully', async () => {\n      const result = await manager.init({}, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.error[0]).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n    }).timeout(10000);\n\n    it('with local event handlers', async () => {\n      const onGenerateConfig = (event) => {\n        event.context.createdAt = new Moment();\n      };\n\n      const plugin = {\n        provides: {\n          generateConfig: onGenerateConfig,\n        },\n      };\n\n      const result = await manager.init(plugin, npm);\n\n      expect(result).to.deep.equal(manager);\n      expect(typeof result._events.generateConfig[0]).to.equal('function');\n      expect(typeof result._events.error[0]).to.equal('function');\n      expect(typeof result._events.postInit[0]).to.equal('function');\n      expect(typeof result._events.postInit[1]).to.equal('function');\n      expect(typeof result._events.exit[0]).to.equal('function');\n    });\n\n    it('removes handler on exit', async () => {\n      const result = await manager.init({}, npm);\n\n      await manager.dispatch('exit', manager);\n\n      expect(result).to.deep.equal(manager);\n      expect(Object.keys(result._events).length).to.equal(0);\n    });\n\n    it('local event handler overrides external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxHandlers(10);\n        }\n      };\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.handlers('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(1);\n      expect(manager._defaultMaxHandlers).to.equal(10);\n    });\n\n    it('local event handler adds to external', async () => {\n      const setDefaultMaxHandlers = (event) => {\n        const mgr = event.context;\n\n        if (mgr) {\n          mgr.setMaxHandlers(20);\n        }\n      };\n\n      manager._override = false;\n\n      const plugin = {\n        provides: {\n          postInit: setDefaultMaxHandlers,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const handlers = manager.handlers('postInit')\n        .filter((handler) =>\n          handler.name === 'setDefaultMaxHandlers');\n\n      expect(handlers.length).to.equal(2);\n      expect(manager._defaultMaxHandlers).to.equal(20);\n    });\n  });\n\n  describe('hasHandlers', () => {\n    it('returns true if it has at least one handler for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('postInit')).to.equal(true);\n    });\n\n    it('returns false if it does not have any handlers for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.hasHandlers('preInit')).to.equal(false);\n    });\n\n    it('throw error if hasHandlers() not passed an event name', async () => {\n      await manager.init({}, npm);\n\n      try {\n        manager.hasHandlers();\n      } catch (error) {\n        expect(error.message).to.equal('Undefined event name');\n      }\n    });\n  });\n\n  describe('dispatch', () => {\n    it('throws error if event name is not provided', async () => {\n      try {\n        await manager.init({}, npm);\n\n        await manager.dispatch();\n      } catch (error) {\n        expect(error.message).to.equal('Event name not provided');\n      }\n    });\n\n    it('dispatch event without context object should work', async () => {\n      const config = { debug: true, start: 0 };\n\n      const getConfig = (event) => {\n        event.context.config = config;\n      };\n\n      const plugin = {\n        provides: {\n          preExec: getConfig,\n        },\n      };\n\n      await manager.init(plugin, npm);\n\n      const result = await manager.dispatch('preExec');\n\n      expect(result.config).to.deep.equal(config);\n    });\n  });\n\n  describe('addHandler', () => {\n    it('accepts a new function handler for event', () => {\n      const handler = (event) => {\n        const context = event.context;\n\n        context.data = 'data';\n      };\n\n      let handlers = manager.handlers('getData');\n\n      expect(handlers.length).to.equal(0);\n\n      const man = manager.addHandler('getData', handler);\n\n      handlers = man.handlers('getData');\n\n      expect(handlers.length).to.equal(1);\n    });\n\n    it('throws error when too many handlers are added for event', () => {\n      try {\n        const handler = (event) => {\n          const context = event.context;\n\n          context.data = 'data';\n        };\n\n        manager._defaultMaxHandlers = 1;\n\n        manager.addHandler('getData', handler);\n        manager.addHandler('getData', handler);\n      } catch (error) {\n        expect(error.message).to.equal('Exceeded maximum number of handlers for \\'getData\\' event');\n      }\n    });\n  });\n\n  describe('removeAllHandlers', () => {\n    it('removes all handlers for an event', async () => {\n      await manager.init({}, npm);\n\n      expect(manager.handlers('postInit').length).to.equal(2);\n\n      manager.removeAllHandlers('postInit');\n\n      expect(manager.handlers('postInit').length).to.equal(0);\n    });\n  });\n\n  describe('_getCallback', () => {\n    it('loads plugin functions', async () => {\n      const plugin = 'plugged-in-extras-plugin';\n      const handlerName = 'cleanUp';\n\n      const handler = await manager._getCallback(plugin, handlerName);\n\n      expect(typeof handler).to.equal('function');\n      expect(handler.name).to.equal(handlerName);\n    });\n  });\n});\n"
   },
   {
     "__docId__": 130,
-    "kind": "testIt",
+    "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "it20",
-    "testId": 20,
-    "memberof": "tests/PluginManager.test.js~describe11.describe19",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe19.it20",
+    "name": "describe12",
+    "testId": 12,
+    "memberof": "tests/PluginManager.test.js",
+    "testDepth": 0,
+    "longname": "tests/PluginManager.test.js~describe12",
     "access": null,
-    "description": "returns true if it has at least one handler for an event",
-    "lineNumber": 143
+    "description": "PluginManager",
+    "lineNumber": 7
   },
   {
     "__docId__": 131,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it21",
-    "testId": 21,
-    "memberof": "tests/PluginManager.test.js~describe11.describe19",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe19.it21",
+    "name": "it13",
+    "testId": 13,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.it13",
     "access": null,
-    "description": "returns false if it does not have any handlers for an event",
-    "lineNumber": 149
+    "description": "gets created successfully",
+    "lineNumber": 36
   },
   {
     "__docId__": 132,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it22",
-    "testId": 22,
-    "memberof": "tests/PluginManager.test.js~describe11.describe19",
-    "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe19.it22",
+    "name": "it14",
+    "testId": 14,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.it14",
     "access": null,
-    "description": "throw error if hasHandlers() not passed an event name",
-    "lineNumber": 155
+    "description": "has logger",
+    "lineNumber": 42
   },
   {
     "__docId__": 133,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe23",
-    "testId": 23,
-    "memberof": "tests/PluginManager.test.js~describe11",
+    "name": "describe15",
+    "testId": 15,
+    "memberof": "tests/PluginManager.test.js~describe12",
     "testDepth": 1,
-    "longname": "tests/PluginManager.test.js~describe11.describe23",
+    "longname": "tests/PluginManager.test.js~describe12.describe15",
     "access": null,
-    "description": "dispatch",
-    "lineNumber": 166
+    "description": "init",
+    "lineNumber": 46
   },
   {
     "__docId__": 134,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it24",
-    "testId": 24,
-    "memberof": "tests/PluginManager.test.js~describe11.describe23",
+    "name": "it16",
+    "testId": 16,
+    "memberof": "tests/PluginManager.test.js~describe12.describe15",
     "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe23.it24",
+    "longname": "tests/PluginManager.test.js~describe12.describe15.it16",
     "access": null,
-    "description": "throws error if event name is not provided",
-    "lineNumber": 167
+    "description": "with local event handlers",
+    "lineNumber": 56
   },
   {
     "__docId__": 135,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it25",
-    "testId": 25,
-    "memberof": "tests/PluginManager.test.js~describe11.describe23",
+    "name": "it17",
+    "testId": 17,
+    "memberof": "tests/PluginManager.test.js~describe12.describe15",
     "testDepth": 2,
-    "longname": "tests/PluginManager.test.js~describe11.describe23.it25",
+    "longname": "tests/PluginManager.test.js~describe12.describe15.it17",
     "access": null,
-    "description": "dispatch event without context object should work",
-    "lineNumber": 177
+    "description": "removes handler on exit",
+    "lineNumber": 77
   },
   {
     "__docId__": 136,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it18",
+    "testId": 18,
+    "memberof": "tests/PluginManager.test.js~describe12.describe15",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe15.it18",
+    "access": null,
+    "description": "local event handler overrides external",
+    "lineNumber": 86
+  },
+  {
+    "__docId__": 137,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it19",
+    "testId": 19,
+    "memberof": "tests/PluginManager.test.js~describe12.describe15",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe15.it19",
+    "access": null,
+    "description": "local event handler adds to external",
+    "lineNumber": 111
+  },
+  {
+    "__docId__": 138,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe20",
+    "testId": 20,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.describe20",
+    "access": null,
+    "description": "hasHandlers",
+    "lineNumber": 139
+  },
+  {
+    "__docId__": 139,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it21",
+    "testId": 21,
+    "memberof": "tests/PluginManager.test.js~describe12.describe20",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe20.it21",
+    "access": null,
+    "description": "returns true if it has at least one handler for an event",
+    "lineNumber": 140
+  },
+  {
+    "__docId__": 140,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it22",
+    "testId": 22,
+    "memberof": "tests/PluginManager.test.js~describe12.describe20",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe20.it22",
+    "access": null,
+    "description": "returns false if it does not have any handlers for an event",
+    "lineNumber": 146
+  },
+  {
+    "__docId__": 141,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it23",
+    "testId": 23,
+    "memberof": "tests/PluginManager.test.js~describe12.describe20",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe20.it23",
+    "access": null,
+    "description": "throw error if hasHandlers() not passed an event name",
+    "lineNumber": 152
+  },
+  {
+    "__docId__": 142,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe24",
+    "testId": 24,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.describe24",
+    "access": null,
+    "description": "dispatch",
+    "lineNumber": 163
+  },
+  {
+    "__docId__": 143,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it25",
+    "testId": 25,
+    "memberof": "tests/PluginManager.test.js~describe12.describe24",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe24.it25",
+    "access": null,
+    "description": "throws error if event name is not provided",
+    "lineNumber": 164
+  },
+  {
+    "__docId__": 144,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it26",
+    "testId": 26,
+    "memberof": "tests/PluginManager.test.js~describe12.describe24",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe24.it26",
+    "access": null,
+    "description": "dispatch event without context object should work",
+    "lineNumber": 174
+  },
+  {
+    "__docId__": 145,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe27",
+    "testId": 27,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.describe27",
+    "access": null,
+    "description": "addHandler",
+    "lineNumber": 195
+  },
+  {
+    "__docId__": 146,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it28",
+    "testId": 28,
+    "memberof": "tests/PluginManager.test.js~describe12.describe27",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe27.it28",
+    "access": null,
+    "description": "accepts a new function handler for event",
+    "lineNumber": 196
+  },
+  {
+    "__docId__": 147,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it29",
+    "testId": 29,
+    "memberof": "tests/PluginManager.test.js~describe12.describe27",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe27.it29",
+    "access": null,
+    "description": "throws error when too many handlers are added for event",
+    "lineNumber": 214
+  },
+  {
+    "__docId__": 148,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe30",
+    "testId": 30,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.describe30",
+    "access": null,
+    "description": "removeAllHandlers",
+    "lineNumber": 232
+  },
+  {
+    "__docId__": 149,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it31",
+    "testId": 31,
+    "memberof": "tests/PluginManager.test.js~describe12.describe30",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe30.it31",
+    "access": null,
+    "description": "removes all handlers for an event",
+    "lineNumber": 233
+  },
+  {
+    "__docId__": 150,
+    "kind": "testDescribe",
+    "static": true,
+    "variation": null,
+    "name": "describe32",
+    "testId": 32,
+    "memberof": "tests/PluginManager.test.js~describe12",
+    "testDepth": 1,
+    "longname": "tests/PluginManager.test.js~describe12.describe32",
+    "access": null,
+    "description": "_getCallback",
+    "lineNumber": 244
+  },
+  {
+    "__docId__": 151,
+    "kind": "testIt",
+    "static": true,
+    "variation": null,
+    "name": "it33",
+    "testId": 33,
+    "memberof": "tests/PluginManager.test.js~describe12.describe32",
+    "testDepth": 2,
+    "longname": "tests/PluginManager.test.js~describe12.describe32.it33",
+    "access": null,
+    "description": "loads plugin functions",
+    "lineNumber": 245
+  },
+  {
+    "__docId__": 152,
     "kind": "testFile",
     "static": true,
     "variation": null,
@@ -2655,49 +3012,49 @@
     "content": "import chai, { expect } from 'chai';\nimport ValidationError from './../../src/errors/ValidationError';\n\nchai.use(require('dirty-chai'));\n\ndescribe('ValidationError', () => {\n  it('created successfully', () => {\n    const message = 'my error';\n\n    const error = new ValidationError(message);\n\n    expect(error.name).to.equal('ValidationError');\n    expect(error.message).to.equal(message);\n  });\n\n  it('allows setting custom message', () => {\n    const newMessage = 'new message';\n\n    const error = new ValidationError('');\n\n    expect(error.message).to.not.equal(newMessage);\n\n    error.message = newMessage;\n\n    expect(error.message).to.equal(newMessage);\n  });\n});\n"
   },
   {
-    "__docId__": 137,
+    "__docId__": 153,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe26",
-    "testId": 26,
+    "name": "describe34",
+    "testId": 34,
     "memberof": "tests/errors/ValidationError.test.js",
     "testDepth": 0,
-    "longname": "tests/errors/ValidationError.test.js~describe26",
+    "longname": "tests/errors/ValidationError.test.js~describe34",
     "access": null,
     "description": "ValidationError",
     "lineNumber": 6
   },
   {
-    "__docId__": 138,
+    "__docId__": 154,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it27",
-    "testId": 27,
-    "memberof": "tests/errors/ValidationError.test.js~describe26",
+    "name": "it35",
+    "testId": 35,
+    "memberof": "tests/errors/ValidationError.test.js~describe34",
     "testDepth": 1,
-    "longname": "tests/errors/ValidationError.test.js~describe26.it27",
+    "longname": "tests/errors/ValidationError.test.js~describe34.it35",
     "access": null,
     "description": "created successfully",
     "lineNumber": 7
   },
   {
-    "__docId__": 139,
+    "__docId__": 155,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it28",
-    "testId": 28,
-    "memberof": "tests/errors/ValidationError.test.js~describe26",
+    "name": "it36",
+    "testId": 36,
+    "memberof": "tests/errors/ValidationError.test.js~describe34",
     "testDepth": 1,
-    "longname": "tests/errors/ValidationError.test.js~describe26.it28",
+    "longname": "tests/errors/ValidationError.test.js~describe34.it36",
     "access": null,
     "description": "allows setting custom message",
     "lineNumber": 16
   },
   {
-    "__docId__": 140,
+    "__docId__": 156,
     "kind": "testFile",
     "static": true,
     "variation": null,
@@ -2710,71 +3067,71 @@
     "content": "import chai from 'chai';\nimport Ajv from 'ajv';\nimport validator from './../../src/util/schemaValidator';\n\nconst expect = chai.expect;\n\ndescribe('schemaValidator', () => {\n  const schema = 'http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#';\n\n  it('has Ajv instance as a property', () => {\n    expect(validator.ajv instanceof Ajv).to.equal(true);\n  });\n\n  it('has all available schemas', () => {\n    expect(Object.keys(validator.ajv._schemas).length).to.be.equal(2); // eslint-disable-line no-underscore-dangle, max-len\n    expect(validator.ajv.getSchema('http://plugged-in.x-c-o-d-e.com/schema/configuration+v1#')).not.to.be.equal(undefined);\n  });\n\n  it('successfully validates correct schema', async () => {\n    const object = {\n      context: 'valid-context',\n      provides: {\n        init: 'onInit',\n      },\n    };\n\n    await validator.validate(schema, object);\n  });\n\n  it('successfully validates invalid schema', async () => {\n    try {\n      const object = {\n        context: 'valid-context',\n      };\n\n      await validator.validate(schema, object);\n    } catch (error) {\n      expect(error.message).to.equal('data should have required property \\'provides\\'');\n    }\n  });\n});\n"
   },
   {
-    "__docId__": 141,
+    "__docId__": 157,
     "kind": "testDescribe",
     "static": true,
     "variation": null,
-    "name": "describe29",
-    "testId": 29,
+    "name": "describe37",
+    "testId": 37,
     "memberof": "tests/util/schemaValidator.test.js",
     "testDepth": 0,
-    "longname": "tests/util/schemaValidator.test.js~describe29",
+    "longname": "tests/util/schemaValidator.test.js~describe37",
     "access": null,
     "description": "schemaValidator",
     "lineNumber": 7
   },
   {
-    "__docId__": 142,
+    "__docId__": 158,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it30",
-    "testId": 30,
-    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "name": "it38",
+    "testId": 38,
+    "memberof": "tests/util/schemaValidator.test.js~describe37",
     "testDepth": 1,
-    "longname": "tests/util/schemaValidator.test.js~describe29.it30",
+    "longname": "tests/util/schemaValidator.test.js~describe37.it38",
     "access": null,
     "description": "has Ajv instance as a property",
     "lineNumber": 10
   },
   {
-    "__docId__": 143,
+    "__docId__": 159,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it31",
-    "testId": 31,
-    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "name": "it39",
+    "testId": 39,
+    "memberof": "tests/util/schemaValidator.test.js~describe37",
     "testDepth": 1,
-    "longname": "tests/util/schemaValidator.test.js~describe29.it31",
+    "longname": "tests/util/schemaValidator.test.js~describe37.it39",
     "access": null,
     "description": "has all available schemas",
     "lineNumber": 14
   },
   {
-    "__docId__": 144,
+    "__docId__": 160,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it32",
-    "testId": 32,
-    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "name": "it40",
+    "testId": 40,
+    "memberof": "tests/util/schemaValidator.test.js~describe37",
     "testDepth": 1,
-    "longname": "tests/util/schemaValidator.test.js~describe29.it32",
+    "longname": "tests/util/schemaValidator.test.js~describe37.it40",
     "access": null,
     "description": "successfully validates correct schema",
     "lineNumber": 19
   },
   {
-    "__docId__": 145,
+    "__docId__": 161,
     "kind": "testIt",
     "static": true,
     "variation": null,
-    "name": "it33",
-    "testId": 33,
-    "memberof": "tests/util/schemaValidator.test.js~describe29",
+    "name": "it41",
+    "testId": 41,
+    "memberof": "tests/util/schemaValidator.test.js~describe37",
     "testDepth": 1,
-    "longname": "tests/util/schemaValidator.test.js~describe29.it33",
+    "longname": "tests/util/schemaValidator.test.js~describe37.it41",
     "access": null,
     "description": "successfully validates invalid schema",
     "lineNumber": 30

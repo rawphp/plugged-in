@@ -140,6 +140,8 @@ describe(&apos;Npm&apos;, () =&gt; {
 
       const conf = await readJson(configPath);
 
+      console.log(&apos;conf&apos;, conf);
+
       expect(conf.context).to.equal(&apos;plugged-in&apos;);
       expect(conf.plugins.length).to.equal(1);
     }).timeout(20000);

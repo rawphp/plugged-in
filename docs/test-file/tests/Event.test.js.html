@@ -56,6 +56,14 @@ describe(&apos;Event&apos;, () =&gt; {
     expect(event.name).to.equal(name);
     expect(event.context).to.equal(context);
   });
+
+  it(&apos;allows to set context&apos;, () =&gt; {
+    const event = new Event({ name: &apos;test&apos; });
+
+    event.context = &apos;my-context&apos;;
+
+    expect(event.context).to.equal(&apos;my-context&apos;);
+  });
 });
 </code></pre>
 

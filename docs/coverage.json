@@ -1,7 +1,7 @@
 {
   "coverage": "100%",
-  "expectCount": 24,
-  "actualCount": 24,
+  "expectCount": 29,
+  "actualCount": 29,
   "files": {
     "src/Event.js": {
       "expectCount": 5,
@@ -14,8 +14,8 @@
       "undocumentLines": []
     },
     "src/PluginManager.js": {
-      "expectCount": 11,
-      "actualCount": 11,
+      "expectCount": 16,
+      "actualCount": 16,
       "undocumentLines": []
     },
     "src/errors/ValidationError.js": {

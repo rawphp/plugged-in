@@ -46,7 +46,6 @@
 <a href="https://codeclimate.com/github/rawphp/plugged-in/coverage"><img src="https://codeclimate.com/github/rawphp/plugged-in/badges/coverage.svg" alt="Test Coverage"></a>
 <a href="https://codeclimate.com/github/rawphp/plugged-in"><img src="https://codeclimate.com/github/rawphp/plugged-in/badges/issue_count.svg" alt="Issue Count"></a></p>
 <p>Plugin system for Node Js.</p>
-<h2 id="note-this-module-is-under-heavy-development-and-breaking-changes-are-possible-">NOTE: This module is under heavy development and breaking changes are possible.</h2>
 <h2 id="installation">Installation</h2>
 <pre><code><code class="source-code prettyprint">  npm install plugged-in</code>
 </code></pre><h2 id="usage">Usage</h2>
@@ -91,13 +90,8 @@ the <code>.plugged-in.json</code> config and load the plugins.</p>
 <pre><code><code class="source-code prettyprint">  const context = { body: &apos;current body&apos; };
   await this.dispatch(&apos;getBody&apos;, context);
   const body = context.body; // resulting value</code>
-</code></pre><p>You can optionally emit an event instead if required:</p>
-<pre><code><code class="source-code prettyprint">  import { Event } from &apos;plugged-in&apos;; // added at the top of the file
-
-  const event = new Event({ name: &apos;getBody&apos;, context: this });
-  this.emit(&apos;getBody&apos;, event)
-  const body = event.context.body; // resulting value</code>
-</code></pre><p>When execution returns after calling <code>dispatch</code>, the event&apos;s <code>context</code> property should be modified if a return value is expected.</p>
+</code></pre><p>To get a return value from an event execution, set the desired data on the context property of the event. This is what get&apos;s returned from the 
+<code>dispatch</code> call.</p>
 <h2 id="more-on-usage">More on Usage</h2>
 <p>See the examples directory for usage example. The examples show the manager project and one plugin project.</p>
 <h3 id="note-">NOTE:</h3>

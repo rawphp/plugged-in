@@ -361,6 +361,12 @@ window.esdocSearchIndex = [
   ],
   [
     "",
+    "test-file/tests/Event.test.js.html#lineNumber17",
+    "Event allows to set context",
+    "test"
+  ],
+  [
+    "",
     "test-file/tests/Event.test.js.html#lineNumber7",
     "Event created successfully",
     "test"
@@ -421,92 +427,134 @@ window.esdocSearchIndex = [
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber8",
+    "test-file/tests/PluginManager.test.js.html#lineNumber7",
     "PluginManager",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber166",
+    "test-file/tests/PluginManager.test.js.html#lineNumber244",
+    "PluginManager _getCallback",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber245",
+    "PluginManager _getCallback loads plugin functions",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber195",
+    "PluginManager addHandler",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber196",
+    "PluginManager addHandler accepts a new function handler for event",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber214",
+    "PluginManager addHandler throws error when too many handlers are added for event",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber163",
     "PluginManager dispatch",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber177",
+    "test-file/tests/PluginManager.test.js.html#lineNumber174",
     "PluginManager dispatch dispatch event without context object should work",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber167",
+    "test-file/tests/PluginManager.test.js.html#lineNumber164",
     "PluginManager dispatch throws error if event name is not provided",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber37",
+    "test-file/tests/PluginManager.test.js.html#lineNumber36",
     "PluginManager gets created successfully",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber43",
+    "test-file/tests/PluginManager.test.js.html#lineNumber42",
     "PluginManager has logger",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber142",
+    "test-file/tests/PluginManager.test.js.html#lineNumber139",
     "PluginManager hasHandlers",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber149",
+    "test-file/tests/PluginManager.test.js.html#lineNumber146",
     "PluginManager hasHandlers returns false if it does not have any handlers for an event",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber143",
+    "test-file/tests/PluginManager.test.js.html#lineNumber140",
     "PluginManager hasHandlers returns true if it has at least one handler for an event",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber155",
+    "test-file/tests/PluginManager.test.js.html#lineNumber152",
     "PluginManager hasHandlers throw error if hasHandlers() not passed an event name",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber47",
+    "test-file/tests/PluginManager.test.js.html#lineNumber46",
     "PluginManager init",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber57",
-    "PluginManager init init with local event handlers",
-    "test"
-  ],
-  [
-    "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber114",
+    "test-file/tests/PluginManager.test.js.html#lineNumber111",
     "PluginManager init local event handler adds to external",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber89",
+    "test-file/tests/PluginManager.test.js.html#lineNumber86",
     "PluginManager init local event handler overrides external",
     "test"
   ],
   [
     "",
-    "test-file/tests/PluginManager.test.js.html#lineNumber78",
-    "PluginManager init removes listeners on exit",
+    "test-file/tests/PluginManager.test.js.html#lineNumber77",
+    "PluginManager init removes handler on exit",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber56",
+    "PluginManager init with local event handlers",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber232",
+    "PluginManager removeAllHandlers",
+    "test"
+  ],
+  [
+    "",
+    "test-file/tests/PluginManager.test.js.html#lineNumber233",
+    "PluginManager removeAllHandlers removes all handlers for an event",
     "test"
   ],
   [
@@ -571,13 +619,13 @@ window.esdocSearchIndex = [
   ],
   [
     "src/event.js~event#context",
-    "class/src/Event.js~Event.html#instance-set-context",
+    "class/src/Event.js~Event.html#instance-get-context",
     "src/Event.js~Event#context",
     "member"
   ],
   [
     "src/event.js~event#context",
-    "class/src/Event.js~Event.html#instance-get-context",
+    "class/src/Event.js~Event.html#instance-set-context",
     "src/Event.js~Event#context",
     "member"
   ],
@@ -624,6 +672,12 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/pluginmanager.js~pluginmanager#addhandler",
+    "class/src/PluginManager.js~PluginManager.html#instance-method-addHandler",
+    "src/PluginManager.js~PluginManager#addHandler",
+    "method"
+  ],
+  [
     "src/pluginmanager.js~pluginmanager#addplugins",
     "class/src/PluginManager.js~PluginManager.html#instance-method-addPlugins",
     "src/PluginManager.js~PluginManager#addPlugins",
@@ -654,6 +708,18 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/pluginmanager.js~pluginmanager#getmaxhandlers",
+    "class/src/PluginManager.js~PluginManager.html#instance-method-getMaxHandlers",
+    "src/PluginManager.js~PluginManager#getMaxHandlers",
+    "method"
+  ],
+  [
+    "src/pluginmanager.js~pluginmanager#handlers",
+    "class/src/PluginManager.js~PluginManager.html#instance-method-handlers",
+    "src/PluginManager.js~PluginManager#handlers",
+    "method"
+  ],
+  [
     "src/pluginmanager.js~pluginmanager#hashandler",
     "class/src/PluginManager.js~PluginManager.html#instance-method-hasHandler",
     "src/PluginManager.js~PluginManager#hasHandler",
@@ -678,9 +744,21 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
+    "src/pluginmanager.js~pluginmanager#removeallhandlers",
+    "class/src/PluginManager.js~PluginManager.html#instance-method-removeAllHandlers",
+    "src/PluginManager.js~PluginManager#removeAllHandlers",
+    "method"
+  ],
+  [
     "src/pluginmanager.js~pluginmanager#removehandler",
     "class/src/PluginManager.js~PluginManager.html#instance-method-removeHandler",
     "src/PluginManager.js~PluginManager#removeHandler",
+    "method"
+  ],
+  [
+    "src/pluginmanager.js~pluginmanager#setmaxhandlers",
+    "class/src/PluginManager.js~PluginManager.html#instance-method-setMaxHandlers",
+    "src/PluginManager.js~PluginManager#setMaxHandlers",
     "method"
   ],
   [
