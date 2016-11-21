@@ -4,7 +4,7 @@ import PluginManager from './../src/PluginManager';
 
 chai.use(require('dirty-chai'));
 
-describe.only('PluginManager', () => {
+describe('PluginManager', () => {
   let manager;
   let npm;
 
@@ -189,6 +189,67 @@ describe.only('PluginManager', () => {
       const result = await manager.dispatch('preExec');
 
       expect(result.config).to.deep.equal(config);
+    });
+  });
+
+  describe('addHandler', () => {
+    it('accepts a new function handler for event', () => {
+      const handler = (event) => {
+        const context = event.context;
+
+        context.data = 'data';
+      };
+
+      let handlers = manager.handlers('getData');
+
+      expect(handlers.length).to.equal(0);
+
+      const man = manager.addHandler('getData', handler);
+
+      handlers = man.handlers('getData');
+
+      expect(handlers.length).to.equal(1);
+    });
+
+    it('throws error when too many handlers are added for event', () => {
+      try {
+        const handler = (event) => {
+          const context = event.context;
+
+          context.data = 'data';
+        };
+
+        manager._defaultMaxHandlers = 1;
+
+        manager.addHandler('getData', handler);
+        manager.addHandler('getData', handler);
+      } catch (error) {
+        expect(error.message).to.equal('Exceeded maximum number of handlers for \'getData\' event');
+      }
+    });
+  });
+
+  describe('removeAllHandlers', () => {
+    it('removes all handlers for an event', async () => {
+      await manager.init({}, npm);
+
+      expect(manager.handlers('postInit').length).to.equal(2);
+
+      manager.removeAllHandlers('postInit');
+
+      expect(manager.handlers('postInit').length).to.equal(0);
+    });
+  });
+
+  describe('_getCallback', () => {
+    it('loads plugin functions', async () => {
+      const plugin = 'plugged-in-extras-plugin';
+      const handlerName = 'cleanUp';
+
+      const handler = await manager._getCallback(plugin, handlerName);
+
+      expect(typeof handler).to.equal('function');
+      expect(handler.name).to.equal(handlerName);
     });
   });
 });

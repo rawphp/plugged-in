@@ -97,6 +97,8 @@ describe('Npm', () => {
 
       const conf = await readJson(configPath);
 
+      console.log('conf', conf);
+
       expect(conf.context).to.equal('plugged-in');
       expect(conf.plugins.length).to.equal(1);
     }).timeout(20000);

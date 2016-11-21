@@ -79,7 +79,7 @@
   "scripts": {
     "lint": "npm run clean && eslint .",
     "test": "env TZ='UTC' NODE_ENV=test mocha tests --compilers js:babel-core/register --require babel-polyfill --recursive",
-    "coverage": "istanbul cover --verbose --report text --report lcov _mocha -- --compilers js:babel-core/register --require babel-polyfill tests/**/*.test.js --recursive",
+    "coverage": "istanbul cover --verbose --report text --report lcov --report html _mocha -- --compilers js:babel-core/register --require babel-polyfill tests --recursive",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "codeclimate": "./node_modules/.bin/codeclimate-test-reporter < coverage/lcov.info",
     "watch": "npm-watch",
