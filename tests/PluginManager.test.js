@@ -136,6 +136,16 @@ describe('PluginManager', () => {
     });
   });
 
+  describe('eventNames', () => {
+    it('returns a list of supported event names', async () => {
+      await manager.init({}, npm);
+
+      const expected = ['error', 'postInit', 'exit'];
+
+      expect(manager.eventNames()).to.deep.equal(expected);
+    });
+  });
+
   describe('hasHandlers', () => {
     it('returns true if it has at least one handler for an event', async () => {
       await manager.init({}, npm);

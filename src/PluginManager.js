@@ -141,6 +141,15 @@ export default class PluginManager {
   }
 
   /**
+   * Returns a list of supported events.
+   *
+   * @returns {String[]} list of event names
+   */
+  eventNames() {
+    return Object.keys(this._events);
+  }
+
+  /**
    * Get list of handlers for an event.
    *
    * @param {String} eventName the event name
