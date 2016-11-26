@@ -1,10 +1,9 @@
 node_modules/**
 */node_modules/**
-build/
+lib/
 npm-debug.log
 .plugged-in.json
 !.gitignore
 examples/manager/node_modules/**
 examples/plugin/node_modules/**
 coverage/*
-resources/docs/

@@ -6,7 +6,7 @@
  * @returns {undefined}
  */
 export default async function getBody(event) {
-  const app = event.data;
+  const app = event.context;
 
   app.body = 'This is the real body. See []';
 }

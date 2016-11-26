@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3 (2016-11-26)
+  * Fixed dispatch bug
+  * Hardened module discovery
+
 ## 1.0.3 (2016-11-19)
   * Add
     - Missing LICENCE file

@@ -5,7 +5,6 @@ import Npm from './../src/Npm';
 
 chai.use(require('dirty-chai'));
 
-const copyAsync = Promise.promisify(fs.copy);
 const removeAsync = Promise.promisify(fs.remove);
 const readJson = Promise.promisify(fs.readJson);
 
@@ -62,16 +61,6 @@ describe('Npm', () => {
       await removeAsync(modulesSdkPath);
     });
 
-    it('returns empty list if `extraneous` modules are installed', async () => {
-      const sdkpath = `${__dirname}/fixtures/packages/aws-sdk`;
-
-      await copyAsync(sdkpath, modulesSdkPath);
-
-      const modules = await npm.getModules();
-
-      expect(modules.length).to.equal(0);
-    }).timeout(10000);
-
     it('gets list of installed modules successfully', async () => {
       const modules = await npm.getModules();
 
@@ -90,7 +79,7 @@ describe('Npm', () => {
     it('generates a new .plugged-in.json file successfully', async () => {
       const manager = {
         addPlugins: () => manager,
-        emit: () => manager,
+        dispatch: () => manager,
       };
 
       await npm.generateConfig(manager, configPath);

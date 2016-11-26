@@ -1,10 +1,11 @@
-import { PluginManager, Event } from 'plugged-in'; // eslint-disable-line import/no-unresolved
+import { PluginManager } from 'plugged-in'; // eslint-disable-line import/no-unresolved
 
 export default class Application extends PluginManager {
   constructor(config) {
     super(config);
 
     this.debug = config.debug || false;
+
     this._title = 'Default Title';
     this._body = 'Not Defined';
   }
@@ -17,9 +18,7 @@ export default class Application extends PluginManager {
    * @returns {String} the title
    */
   get title() {
-    const event = new Event({ name: 'getTitle', data: this });
-
-    this.emit(event.name, event);
+    this.dispatch('getTitle', this);
 
     return this._title;
   }

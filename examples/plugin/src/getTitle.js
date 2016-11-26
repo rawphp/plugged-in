@@ -6,7 +6,7 @@
  * @returns {undefined}
  */
 export default async function getTitle(event) {
-  const app = event.data;
+  const app = event.context;
 
   app.title = 'My Real Title';
 }

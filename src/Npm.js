@@ -1,11 +1,9 @@
 import Promise from 'bluebird';
 import path from 'path';
 import fs from 'fs-extra';
-import writeJsonFile from 'write-json-file';
+import fsp from 'fs-promise';
 import childProcess from 'child_process';
 import log from 'color-logger';
-import readPackage from 'read-pkg-up';
-import Event from './Event';
 import validator from './util/schemaValidator';
 
 const readFileAsync = Promise.promisify(fs.readFile);
@@ -39,13 +37,13 @@ export default class Npm {
     const configPath = filePath || '.plugged-in.json';
 
     try {
-      const obj = await readPackage();
+      const obj = await fsp.readJson(`${__dirname}/../package.json`);
 
-      if (typeof obj.pkg['plugged-in'] === 'undefined') {
+      if (typeof obj['plugged-in'] === 'undefined') {
         throw new Error('package.json must have a `plugged-in` section definining the context');
       }
 
-      const sysConfig = obj.pkg['plugged-in'];
+      const sysConfig = obj['plugged-in'];
 
       const configObj = {
         context: sysConfig.context,
@@ -68,7 +66,7 @@ export default class Npm {
             if (config.context === sysConfig.context) {
               const name = plugPkg.name;
 
-              if (name === obj.pkg.name) {
+              if (name === obj.name) {
                 return;
               }
 
@@ -83,7 +81,10 @@ export default class Npm {
 
               plugin = Object.assign(plugin, config);
 
-              configObj.plugins.push(plugin);
+              // check if we already have this plugin
+              if (this._hasPlugin(plugin, configObj.plugins) === false) {
+                configObj.plugins.push(plugin);
+              }
             }
           }
         } catch (error) {
@@ -91,13 +92,13 @@ export default class Npm {
         }
       });
 
-      manager.addPlugins(configObj.plugins);
+      await manager.addPlugins(configObj.plugins);
 
-      const event = new Event({ name: 'generateConfig', context: configObj });
+      // dispatch event
+      await manager.dispatch('generateConfig', configObj);
 
-      manager.emit(event.name, event);
-
-      await writeJsonFile(configPath, event.context, { indent: 2 });
+      // write configuration file
+      await fsp.writeJson(configPath, configObj);
 
       return configObj;
     } catch (error) {
@@ -144,22 +145,25 @@ export default class Npm {
    *
    * @returns {String} output
    */
-  async executeShell(command) {
+  executeShell(command) {
     const bufferSize = 1024 * 500;
 
-    const execAsync = Promise.promisify(childProcess.exec);
+    return new Promise((resolve, reject) => {
+      try {
+        childProcess.exec(command, (error, stdout) =>
+          resolve(stdout), { maxBuffer: bufferSize });
+      } catch (error) {
+        log.e(
+          error.message
+            .replace('Command failed: npm ls --parseable', '')
+            .replace('npm ERR! ', '')
+        );
 
-    try {
-      return await execAsync(command, { maxBuffer: bufferSize });
-    } catch (error) {
-      log.e(
-        error.message
-          .replace('Command failed: npm ls --parseable', '')
-          .replace('npm ERR! ', '')
-      );
+        return reject(error);
+      }
 
-      return null;
-    }
+      return Promise.resolve();
+    });
   }
 
   /**
@@ -181,7 +185,7 @@ export default class Npm {
 
       modules = modules.concat(this._prepareModuleList(result));
     } catch (error) {
-      log.e(error);
+      log.e({ message: error.message });
     }
 
     return modules;
@@ -208,5 +212,27 @@ export default class Npm {
       });
 
     return modules;
+  }
+
+  /**
+   * Determine if plugin already exists.
+   *
+   * @param {Object}   plugin  new plugin
+   * @param {Object[]} plugins list of existing plugins
+   *
+   * @returns {Boolean} true or false
+   *
+   * @private
+   */
+  _hasPlugin(plugin, plugins) {
+    let exists = false;
+
+    plugins.forEach((plug) => {
+      if (plug.name === plugin.name) {
+        exists = true;
+      }
+    });
+
+    return exists;
   }
 }
